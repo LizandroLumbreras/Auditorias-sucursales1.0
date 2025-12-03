@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Auditoría – Inventario Aleatorio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+ body{
+   font-family:'Poppins',sans-serif;
+   background:#f4f6fb;
+   padding:20px;
+ }
+ h2{ text-align:center; color:#00416A; }
+
+ .item{
+   background:white;
+   padding:15px;
+   border-radius:12px;
+   margin-bottom:12px;
+   box-shadow:0 4px 12px rgba(0,0,0,.1);
+   transition:.3s;
+ }
+ .item:hover{ transform:scale(1.01); }
+
+ input{
+   width:100%;
+   padding:12px;
+   border-radius:8px;
+   border:1px solid #ccc;
+   margin-top:10px;
+ }
+
+ button{
+   width:100%;
+   padding:15px;
+   background:#00416A;
+   color:white;
+   font-size:17px;
+   border:none;
+   border-radius:12px;
+   margin-top:25px;
+ }
+</style>
+</head>
+
+<body>
+
+<h2>Captura de Auditoría</h2>
+
+<div id="lista"></div>
+
+<button onclick="finalizar()">Finalizar</button>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const lista = document.getElementById("lista");
+
+async function cargarProductos(){
+    const snap = await getDocs(collection(db, "articulos")); // tu colección de productos
+
+    let activos = [];
+    snap.forEach(d=>{
+        const x = d.data();
+        if(x.activo === true){
+            activos.push({ id:d.id, ...x });
+        }
+    });
+
+    const seleccion = activos.sort(()=>0.5-Math.random()).slice(0,20);
+
+    seleccion.forEach(p=>{
+        lista.innerHTML += `
+          <div class="item">
+            <b>${p.concepto}</b><br>
+            <small>Código: ${p.codigoBarra}</small>
+            <input id="p_${p.id}" type="number" placeholder="Cantidad contada">
+          </div>
+        `;
+    });
+
+    localStorage.setItem("aud_productos", JSON.stringify(seleccion));
+}
+
+cargarProductos();
+</script>
+
+<script>
+function finalizar(){
+    if(confirm("¿Seguro de continuar? Los campos vacíos serán tomados como 0")){
+        const productos = JSON.parse(localStorage.getItem("aud_productos"));
+        let captura = [];
+
+        productos.forEach(p=>{
+            const cant = document.getElementById(`p_${p.id}`).value;
+            captura.push({
+                id: p.id,
+                concepto: p.concepto,
+                codigo: p.codigoBarra,
+                cantidad: Number(cant || 0)
+            });
+        });
+
+        localStorage.setItem("aud_captura", JSON.stringify(captura));
+        window.location="firma.html";
+    }
+}
+</script>
+
+</body>
+</html>

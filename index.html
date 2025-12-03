@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Auditoría – Registro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+ body{
+   margin:0;
+   font-family:'Poppins',sans-serif;
+   background: linear-gradient(to right,#00416A,#0c6cbd);
+   display:flex; justify-content:center; align-items:center;
+   height:100vh; color:white;
+ }
+
+ .card{
+   background:white; color:#222;
+   padding:30px;
+   width:90%; max-width:420px;
+   border-radius:16px;
+   box-shadow:0 8px 25px rgba(0,0,0,.25);
+   animation:fade 0.6s ease;
+ }
+
+ @keyframes fade{ from{opacity:0; transform:translateY(20px);} to{opacity:1;} }
+
+ h2{
+   text-align:center;
+   color:#00416A;
+   font-weight:600;
+ }
+
+ input,select{
+   width:100%; padding:14px;
+   border-radius:10px; border:1px solid #ccc;
+   margin-top:10px; font-size:15px;
+ }
+
+ button{
+   width:100%; padding:14px;
+   background:#00416A; color:white;
+   border:none; border-radius:10px;
+   margin-top:20px; font-size:17px;
+   cursor:pointer; transition:.3s;
+ }
+ button:hover{ background:#0c6cbd; }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Auditoría Aleatoria</h2>
+
+  <label>Sucursal:</label>
+  <select id="sucursal">
+      <option value="">Selecciona…</option>
+      <option>allende1</option>
+      <option>allende2</option>
+      <option>central</option>
+      <option>montemorelos</option>
+      <option>provileon</option>
+      <option>rioverde</option>
+  </select>
+
+  <label>Nombre del encargado:</label>
+  <input id="nombre" placeholder="Ej. Carlos Pérez">
+
+  <label>Fecha y hora:</label>
+  <input type="datetime-local" id="fecha">
+
+  <button onclick="continuar()">Iniciar Auditoría</button>
+</div>
+
+<script>
+function continuar(){
+    const suc = sucursal.value.trim();
+    const nom = nombre.value.trim();
+    const fec = fecha.value;
+
+    if(!suc || !nom || !fec){
+        alert("Completa todos los campos");
+        return;
+    }
+
+    localStorage.setItem("aud_sucursal", suc);
+    localStorage.setItem("aud_nombre", nom);
+    localStorage.setItem("aud_fecha", fec);
+
+    // Pasar a la siguiente página
+    window.location = "inventario.html";
+}
+</script>
+
+</body>
+</html>

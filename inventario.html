@@ -64,45 +64,65 @@ import { collection, getDocs }
 
 const lista = document.getElementById("lista");
 
-async function cargarProductos(){
-
-    /* 🔥 CONSULTA CORRECTA */
+async function cargarProductos() {
     const snap = await getDocs(collection(db, "productos"));
 
     let activos = [];
-    snap.forEach(doc=>{
-        const x = doc.data();
-        if(x.activo === true){
-            activos.push({ id: doc.id, ...x });
+    snap.forEach(d => {
+        const x = d.data();
+        if (x.activo === true) {
+            activos.push({ id: d.id, ...x });
         }
     });
 
-    /* 🔥 SI NO HAY PRODUCTOS ACTIVOS */
-    if (activos.length === 0){
-        lista.innerHTML = `
-            <p style="text-align:center;color:red;">
-            No se encontraron productos activos.<br>
-            Revisa tu colección "articulos".</p>
+    // 🔥 FIJOS = PRODUCTOS CON DEPARTAMENTO CIGARROS
+    const fijos = activos.filter(p =>
+        (p.departamento || "").trim().toUpperCase() === "CIGARROS"
+    );
+
+    // 🔥 ALEATORIOS = TODOS LOS ACTIVOS QUE NO SON CIGARROS
+    const otros = activos.filter(p =>
+        (p.departamento || "").trim().toUpperCase() !== "CIGARROS"
+    );
+
+    const aleatorios = otros.sort(() => 0.5 - Math.random()).slice(0, 20);
+
+    // 🔥 LISTA COMPLETA (FIJOS + ALEATORIOS)
+    const finalList = [...fijos, ...aleatorios];
+    localStorage.setItem("aud_productos", JSON.stringify(finalList));
+
+    // 🔥 MOSTRAR INVENTARIO FIJO
+    if (fijos.length > 0) {
+        lista.innerHTML += `
+            <h3 style="color:#00416A; margin-top:20px;">Inventario Fijo – Departamento CIGARROS</h3>
         `;
-        return;
     }
 
-    /* 🔥 20 PRODUCTOS RANDOM */
-    const seleccion = activos.sort(()=>0.5 - Math.random()).slice(0,20);
-
-    seleccion.forEach(p=>{
+    fijos.forEach(p => {
         lista.innerHTML += `
-          <div class="item">
-            <b>${p.concepto}</b><br>
-            <small>Código: ${p.codigoBarra}</small>
-            <input id="p_${p.id}" type="number" placeholder="Cantidad contada">
-          </div>
+            <div class="item" style="border-left:6px solid #d9534f;">
+                <b>${p.concepto}</b><br>
+                <small>Código: ${p.codigoBarra}</small>
+                <input id="p_${p.id}" type="number" placeholder="Cantidad contada">
+            </div>
         `;
     });
 
-    localStorage.setItem("aud_productos", JSON.stringify(seleccion));
-}
+    // 🔥 MOSTRAR INVENTARIO ALEATORIO
+    lista.innerHTML += `
+        <h3 style="color:#00416A; margin-top:40px;">Inventario Aleatorio</h3>
+    `;
 
+    aleatorios.forEach(p => {
+        lista.innerHTML += `
+            <div class="item">
+                <b>${p.concepto}</b><br>
+                <small>Código: ${p.codigoBarra}</small>
+                <input id="p_${p.id}" type="number" placeholder="Cantidad contada">
+            </div>
+        `;
+    });
+}
 cargarProductos();
 </script>
 

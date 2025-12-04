@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Auditoría – Firma</title>
+<title>Firmar Auditoría</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -10,22 +10,48 @@
 <style>
  body{
    background:linear-gradient(to right,#00416A,#0c6cbd);
-   padding:20px; color:white;
+   padding:25px;
+   color:white;
    font-family:'Poppins',sans-serif;
  }
 
  .card{
-   background:white; color:#222;
-   padding:20px; border-radius:14px;
-   max-width:450px; margin:auto;
-   box-shadow:0 4px 20px rgba(0,0,0,.35);
+   background:white;
+   color:#222;
+   padding:25px;
+   border-radius:16px;
+   max-width:500px;
+   margin:auto;
+   box-shadow:0 6px 20px rgba(0,0,0,.35);
+   text-align:center;
+ }
+
+ canvas{
+   border:2px solid #00416A;
+   border-radius:10px;
+   background:white;
+   display:block;
+   margin:auto;
  }
 
  button{
-   width:100%; padding:15px;
-   background:#00416A; color:white;
-   border:none; border-radius:10px;
-   margin-top:20px; font-size:17px;
+   width:100%;
+   padding:15px;
+   border:none;
+   border-radius:12px;
+   font-size:17px;
+   margin-top:20px;
+   cursor:pointer;
+ }
+
+ .btn1{
+   background:#00416A;
+   color:white;
+ }
+
+ .btn2{
+   background:#c62828;
+   color:white;
  }
 </style>
 </head>
@@ -33,53 +59,89 @@
 <body>
 
 <div class="card">
-  <h2 style="text-align:center;color:#00416A;">Firma del encargado</h2>
+    <h2 style="color:#00416A;">Firma del Encargado</h2>
 
-  <canvas id="canvas" width="350" height="200" style="border:2px solid #00416A;border-radius:10px;"></canvas>
+    <canvas id="canvas" width="350" height="200"></canvas>
 
-  <button onclick="limpiar()">Limpiar</button>
-  <button onclick="guardar()">Guardar Auditoría</button>
+    <button class="btn2" onclick="limpiar()">Limpiar firma</button>
+    <button class="btn1" onclick="guardar()">Guardar Auditoría</button>
 </div>
 
 <script type="module">
-import { db } from "./firebase.js";
-import { doc, collection, addDoc, serverTimestamp } 
+import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
+import { collection, addDoc, serverTimestamp } 
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
-let dib=false;
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-canvas.addEventListener("mousedown",()=>dib=true);
-canvas.addEventListener("mouseup",()=>{dib=false;ctx.beginPath();});
-canvas.addEventListener("mousemove",e=>{
-    if(!dib) return;
-    const r=canvas.getBoundingClientRect();
-    ctx.lineWidth=2; ctx.lineCap="round"; ctx.strokeStyle="#000";
-    ctx.lineTo(e.clientX-r.left,e.clientY-r.top);
+let dibujando = false;
+
+// Dibujar firma
+canvas.addEventListener("mousedown", ()=> dibujando = true);
+canvas.addEventListener("mouseup", ()=> { dibujando = false; ctx.beginPath(); });
+canvas.addEventListener("mousemove", (e)=>{
+    if(!dibujando) return;
+    const rect = canvas.getBoundingClientRect();
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#000";
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(e.clientX-r.left,e.clientY-r.top);
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
 });
 
-window.limpiar=()=> ctx.clearRect(0,0,350,200);
+window.limpiar = ()=>{
+    ctx.clearRect(0,0,350,200);
+};
 
-window.guardar=async ()=>{
-    const suc = localStorage.getItem("aud_sucursal");
+
+// 🔥 GUARDAR TODO EN FIRESTORE
+window.guardar = async()=>{
+
+    const sucursal      = localStorage.getItem("aud_sucursal");
+    const nombre        = localStorage.getItem("aud_nombre");
+    const fecha         = localStorage.getItem("aud_fecha");
+
+    const inventario    = JSON.parse(localStorage.getItem("aud_captura"));
+    const caducidades   = JSON.parse(localStorage.getItem("aud_caducidades"));
+    const devoluciones  = JSON.parse(localStorage.getItem("aud_devoluciones"));
+    const incidencias   = localStorage.getItem("aud_incidencias");
+    const sugerencias   = localStorage.getItem("aud_sugerencias");
+
     const firma = canvas.toDataURL();
 
-    const data={
-        sucursal: suc,
-        nombre: localStorage.getItem("aud_nombre"),
-        fecha: localStorage.getItem("aud_fecha"),
-        captura: JSON.parse(localStorage.getItem("aud_captura")),
+    const data = {
+        sucursal,
+        nombre,
+        fecha,
+        creadoEn: serverTimestamp(),
         firma,
-        creadoEn: serverTimestamp()
+
+        // SUBMODULOS
+        inventario,
+        caducidades,
+        devoluciones,
+        incidencias,
+        sugerencias
     };
 
-    await addDoc(collection(db,`auditorias/${suc}/auditorias_registros`), data);
+    // GUARDAR EN COLECCIÓN ESTRUCTURADA
+    await addDoc(
+        collection(db, `auditorias/${sucursal}/auditorias_registros`),
+        data
+    );
 
-    window.location="gracias.html";
+    // Limpiar memoria temporal
+    localStorage.removeItem("aud_captura");
+    localStorage.removeItem("aud_caducidades");
+    localStorage.removeItem("aud_devoluciones");
+    localStorage.removeItem("aud_incidencias");
+    localStorage.removeItem("aud_sugerencias");
+
+    // Redirigir al mensaje final
+    window.location = "gracias.html";
 };
 </script>
 

@@ -67,7 +67,7 @@ const lista = document.getElementById("lista");
 async function cargarProductos(){
 
     /* 🔥 CONSULTA CORRECTA */
-    const snap = await getDocs(collection(db, "articulos"));
+    const snap = await getDocs(collection(db, "productos"));
 
     let activos = [];
     snap.forEach(doc=>{

@@ -8,46 +8,100 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
- body{
-   margin:0;
-   font-family:'Poppins',sans-serif;
-   background: linear-gradient(to right,#00416A,#0c6cbd);
-   display:flex; justify-content:center; align-items:center;
-   height:100vh; color:white;
- }
 
- .card{
-   background:white;
-   color:#222;
-   padding:30px;
-   width:90%; max-width:420px;
-   border-radius:16px;
-   box-shadow:0 8px 25px rgba(0,0,0,.25);
- }
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco: #ffffff;
+    --grisTexto:#3a3a3a;
+}
 
- h2{
+/* Fondo moderno */
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg, var(--azul1), var(--azul2));
+    overflow:hidden;
+}
+
+/* Animación suave */
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(25px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+/* Tarjeta estilo glassmorphism */
+.card{
+   width:90%;
+   max-width:400px;
+   padding:35px;
+   border-radius:18px;
+   background: rgba(255,255,255,0.15);
+   backdrop-filter: blur(12px);
+   -webkit-backdrop-filter: blur(12px);
+   box-shadow:0 8px 35px rgba(0,0,0,.25);
+   color:white;
+   animation: fadeUp .7s ease;
+}
+
+/* Título */
+h2{
    text-align:center;
-   color:#00416A;
- }
+   font-weight:600;
+   font-size:28px;
+   margin-bottom:25px;
+}
 
- input{
-   width:100%; padding:14px;
-   border-radius:10px; border:1px solid #ccc;
-   margin-top:10px; font-size:15px;
- }
+/* Inputs estilo moderno */
+input{
+    width:100%;
+    padding:14px 16px;
+    border-radius:12px;
+    border:none;
+    outline:none;
+    font-size:15px;
+    margin-top:12px;
+    background:rgba(255,255,255,0.85);
+    color:#333;
+}
 
- button{
-   width:100%; padding:14px;
-   background:#00416A; color:white;
-   border:none; border-radius:10px;
-   margin-top:20px; font-size:17px;
-   cursor:pointer; transition:.3s;
- }
+/* Botón principal */
+button{
+   width:100%;
+   padding:15px;
+   margin-top:25px;
+   background:var(--blanco);
+   color:var(--azul1);
+   font-size:17px;
+   font-weight:600;
+   border:none;
+   border-radius:12px;
+   cursor:pointer;
+   transition: all .25s ease;
+   box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
 
- .error{
-   color:red; display:none; text-align:center;
+button:hover{
+    background:#e8e8e8;
+    transform:translateY(-2px);
+}
+
+/* Mensaje error */
+.error{
+   display:none;
    margin-top:10px;
- }
+   text-align:center;
+   color:#ffe1e1;
+   background:rgba(255,0,0,0.20);
+   padding:8px 12px;
+   border-radius:8px;
+   font-size:14px;
+}
+
 </style>
 </head>
 
@@ -57,7 +111,7 @@
   <h2>Iniciar Sesión</h2>
 
   <label>Usuario:</label>
-  <input id="usuario" placeholder="Ej. LIZANDRO">
+  <input id="usuario" placeholder="Tu usuario">
 
   <label>Contraseña:</label>
   <input id="password" type="password" placeholder="••••••••">
@@ -67,7 +121,9 @@
   <button onclick="login()">Entrar</button>
 </div>
 
+
 <script type="module">
+
 import { db } from "./firebase.js";
 import { collection, getDocs } 
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -86,12 +142,13 @@ async function login(){
     }
 
     const snap = await getDocs(collection(db, "usuarios_ruta"));
-
     let usuarioData = null;
 
     snap.forEach(doc=>{
         const x = doc.data();
-        if(x.usuario === userInput && x.password === passInput && x.activo === true){
+        if(x.usuario.toUpperCase() === userInput.toUpperCase() &&
+           x.password === passInput &&
+           x.activo === true){
             usuarioData = x;
         }
     });
@@ -102,25 +159,23 @@ async function login(){
         return;
     }
 
-    // GUARDAR DATOS EN LOCALSTORAGE
     localStorage.setItem("aud_nombre",   usuarioData.nombre);
     localStorage.setItem("aud_sucursal", usuarioData.rutaId);
     localStorage.setItem("aud_usuario",  usuarioData.usuario);
 
-    // FECHA AUTOMÁTICA
     const fecha = new Date().toISOString().slice(0,16);
     localStorage.setItem("aud_fecha", fecha);
 
-    // 🔥 RUTA SEGÚN EL ROL
     if(usuarioData.rol === "admin"){
         localStorage.setItem("admin_login","true");
-        window.location = "admin_dashboard.html"; // MODULO ADMIN
+        window.location = "admin_dashboard.html";
     }else{
-        window.location = "inventario.html"; // MODULO USUARIO
+        window.location = "inventario.html";
     }
 }
 
 window.login = login;
+
 </script>
 
 </body>

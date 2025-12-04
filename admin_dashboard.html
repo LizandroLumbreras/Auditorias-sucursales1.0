@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel de Auditorías</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+    background:#f4f6fb;
+    margin:0; padding:20px;
+    font-family:'Poppins',sans-serif;
+}
+h2{
+    color:#00416A; text-align:center;
+}
+select{
+    width:100%; max-width:350px;
+    padding:12px; border-radius:10px;
+    border:1px solid #ccc;
+    display:block; margin:15px auto;
+}
+.card{
+    background:white;
+    padding:20px;
+    margin:20px auto;
+    max-width:700px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
+button{
+    background:#00416A; color:white;
+    border:none; padding:10px;
+    border-radius:10px; cursor:pointer;
+    margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Panel de Auditorías</h2>
+
+<select id="selSucursal" onchange="cargar()">
+    <option value="">Selecciona sucursal…</option>
+    <option value="allende1">allende1</option>
+    <option value="allende2">allende2</option>
+    <option value="central">central</option>
+    <option value="montemorelos">montemorelos</option>
+    <option value="provileon">provileon</option>
+    <option value="rioverde">rioverde</option>
+</select>
+
+<div id="lista"></div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+if(localStorage.getItem("admin_login")!=="true"){
+    window.location="admin_login.html";
+}
+
+async function cargar(){
+    const suc = document.getElementById("selSucursal").value;
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    if(!suc) return;
+
+    const snap = await getDocs(collection(db, `auditorias/${suc}/auditorias_registros`));
+
+    snap.forEach(doc=>{
+        const x = doc.data();
+
+        lista.innerHTML += `
+            <div class="card">
+                <h3>${x.nombre}</h3>
+                <p><b>Fecha:</b> ${x.fecha}</p>
+                <p><b>Usuario:</b> ${x.usuario}</p>
+
+                <button onclick='ver("${suc}","${doc.id}")'>Ver detalles</button>
+            </div>
+        `;
+    });
+}
+
+window.cargar = cargar;
+
+window.ver = (suc,id)=>{
+    localStorage.setItem("admin_last_sucursal", suc);
+    localStorage.setItem("admin_last_id", id);
+    window.location = "admin_detalle.html";
+}
+</script>
+
+</body>
+</html>

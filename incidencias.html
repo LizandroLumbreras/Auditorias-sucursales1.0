@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Incidencias del Personal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+ body{
+   font-family:'Poppins', sans-serif;
+   background:#f4f6fb;
+   padding:20px;
+ }
+
+ h2{
+   text-align:center;
+   color:#00416A;
+   margin-bottom:20px;
+ }
+
+ .card{
+   background:white;
+   padding:25px;
+   border-radius:16px;
+   max-width:600px;
+   margin:auto;
+   box-shadow:0 4px 16px rgba(0,0,0,.15);
+ }
+
+ textarea{
+   width:100%;
+   padding:12px;
+   border-radius:10px;
+   border:1px solid #bbb;
+   resize:none;
+   height:180px;
+   margin-top:15px;
+   font-size:16px;
+ }
+
+ button{
+   width:100%;
+   padding:15px;
+   border:none;
+   border-radius:12px;
+   margin-top:20px;
+   font-size:17px;
+   cursor:pointer;
+ }
+
+ .disabled{
+   background:#9bb6c8;
+   color:white;
+   pointer-events:none;
+ }
+
+ .enabled{
+   background:#00416A;
+   color:white;
+ }
+</style>
+</head>
+
+<body>
+
+<h2>Incidencias de Personal</h2>
+
+<div class="card">
+    <p>Escribe cualquier incidencia que haya ocurrido hoy (faltas, retardos, problemas, desempeño, etc.).</p>
+
+    <textarea id="incidencias" placeholder="Escribe aquí..."></textarea>
+
+    <button id="btnContinuar" class="disabled">Continuar</button>
+</div>
+
+<script>
+const textarea = document.getElementById("incidencias");
+const btn = document.getElementById("btnContinuar");
+
+textarea.addEventListener("input", ()=>{
+    const txt = textarea.value.trim();
+
+    if(txt.length >= 5){
+        btn.classList.remove("disabled");
+        btn.classList.add("enabled");
+    }else{
+        btn.classList.add("disabled");
+        btn.classList.remove("enabled");
+    }
+});
+
+btn.addEventListener("click", ()=>{
+    const txt = textarea.value.trim();
+
+    if(txt.length < 5){
+        alert("Debes escribir al menos una incidencia.");
+        return;
+    }
+
+    localStorage.setItem("aud_incidencias", txt);
+
+    window.location = "sugerencias.html";
+});
+</script>
+
+</body>
+</html>

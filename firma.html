@@ -103,6 +103,7 @@ window.guardar = async()=>{
     const sucursal      = localStorage.getItem("aud_sucursal");
     const nombre        = localStorage.getItem("aud_nombre");
     const fecha         = localStorage.getItem("aud_fecha");
+    const usuario       = localStorage.getItem("aud_usuario");   // 🔥 AGREGADO
 
     const inventario    = JSON.parse(localStorage.getItem("aud_captura"));
     const caducidades   = JSON.parse(localStorage.getItem("aud_caducidades"));
@@ -115,6 +116,7 @@ window.guardar = async()=>{
     const data = {
         sucursal,
         nombre,
+        usuario,       // 🔥 AGREGADO
         fecha,
         creadoEn: serverTimestamp(),
         firma,
@@ -127,7 +129,6 @@ window.guardar = async()=>{
         sugerencias
     };
 
-    // GUARDAR EN COLECCIÓN ESTRUCTURADA
     await addDoc(
         collection(db, `auditorias/${sucursal}/auditorias_registros`),
         data
@@ -140,9 +141,9 @@ window.guardar = async()=>{
     localStorage.removeItem("aud_incidencias");
     localStorage.removeItem("aud_sugerencias");
 
-    // Redirigir al mensaje final
     window.location = "gracias.html";
 };
+
 </script>
 
 </body>

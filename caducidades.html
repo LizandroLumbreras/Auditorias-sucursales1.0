@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Revisión de Caducidades</title>
+<title>Auditoría – Caducidades</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -13,20 +13,20 @@
    background:#f4f6fb;
    padding:20px;
  }
- h2{ text-align:center; color:#00416A; margin-bottom:25px; }
+ h2{ text-align:center; color:#00416A; }
 
  .item{
    background:white;
    padding:15px;
    border-radius:12px;
-   margin-bottom:15px;
+   margin-bottom:12px;
    box-shadow:0 4px 12px rgba(0,0,0,.1);
  }
- select,textarea,input{
+ input{
    width:100%;
-   padding:10px;
+   padding:12px;
    border-radius:8px;
-   border:1px solid #bbb;
+   border:1px solid #ccc;
    margin-top:10px;
  }
 
@@ -37,8 +37,8 @@
    color:white;
    border:none;
    border-radius:12px;
-   margin-top:25px;
    font-size:17px;
+   margin-top:25px;
  }
 </style>
 </head>
@@ -52,69 +52,61 @@
 <button onclick="continuar()">Continuar</button>
 
 <script type="module">
+
+/* FIREBASE IMPORT (same repo) */
 import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const lista = document.getElementById("lista");
 
-async function cargarCaducidades(){
-
-    // leer productos reales
+async function cargarCaducidades() {
     const snap = await getDocs(collection(db, "productos"));
-    let productos = [];
-    snap.forEach(doc=> productos.push({ id: doc.id, ...doc.data() }) );
+    let activos = [];
 
-    // filtrar SOLO productos que tengan fechaCaducidad
-    const conFecha = productos.filter(x => x.fechaCaducidad);
+    snap.forEach(d => {
+        const x = d.data();
+        if (x.activo === true) {
+            activos.push({ id: d.id, ...x });
+        }
+    });
 
-    // seleccionar 10 a 15 random
-    const total = Math.floor(Math.random()*6)+10;
-    const seleccion = conFecha.sort(()=>0.5-Math.random()).slice(0,total);
+    // 12 productos aleatorios
+    const selec = activos.sort(() => 0.5 - Math.random()).slice(0, 12);
+    localStorage.setItem("aud_caducidades_lista", JSON.stringify(selec));
 
-    // render
-    seleccion.forEach(p=>{
+    selec.forEach(p => {
         lista.innerHTML += `
             <div class="item">
                 <b>${p.concepto}</b><br>
-                <small>Código: ${p.codigoBarra}</small><br>
-                <small>Caducidad: ${p.fechaCaducidad}</small>
-
-                <select id="rev_${p.id}">
-                    <option value="">Estado…</option>
-                    <option>Buena condición</option>
-                    <option>Próximo a vencer</option>
-                    <option>Vencido</option>
-                    <option>No visible</option>
-                </select>
-
-                <textarea id="obs_${p.id}" placeholder="Observaciones (opcional)"></textarea>
+                <small>Código: ${p.codigoBarra}</small>
+                <input id="f_${p.id}" type="date" placeholder="Fecha de caducidad">
             </div>
         `;
     });
-
-    localStorage.setItem("aud_caducidades_lista", JSON.stringify(seleccion));
 }
+
 cargarCaducidades();
+</script>
 
-window.continuar = function(){
-    const cad = JSON.parse(localStorage.getItem("aud_caducidades_lista"));
-    let resultado = [];
+<script>
+function continuar() {
+    const productos = JSON.parse(localStorage.getItem("aud_caducidades_lista"));
+    let captura = [];
 
-    for(const p of cad){
-        const estado = document.getElementById(`rev_${p.id}`).value;
-        const obs    = document.getElementById(`obs_${p.id}`).value;
-
-        resultado.push({
+    productos.forEach(p => {
+        const fecha = document.getElementById(`f_${p.id}`).value || "";
+        captura.push({
             id: p.id,
             concepto: p.concepto,
-            codigoBarra: p.codigoBarra,
-            fechaCaducidad: p.fechaCaducidad,
-            estado,
-            observaciones: obs
+            codigo: p.codigoBarra,
+            caducidad: fecha
         });
-    }
+    });
 
-    localStorage.setItem("aud_caducidades", JSON.stringify(resultado));
+    localStorage.setItem("aud_caducidades", JSON.stringify(captura));
+
+    // pasar a devoluciones
     window.location = "devoluciones.html";
 }
 </script>

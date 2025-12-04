@@ -56,19 +56,52 @@
 
 <script type="module">
 
-/* 🔥 FIREBASE IMPORT */
 import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
-
 import { collection, getDocs }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const lista = document.getElementById("lista");
 
+/* ---------------------------------------------------------
+   ✅ LISTA FIJA DE PRODUCTOS DE CIGARROS + NUEZ + CELOFÁN
+----------------------------------------------------------*/
+const FIJOS_MANUALES = [
+  { codigo: "75035259", concepto: "MARLBORO BLANCO 100" },
+  { codigo: "75068738", concepto: "MARLBORO BLANCO DURO" },
+  { codigo: "75068745", concepto: "MARLBORO BLANCO SUAVE" },
+  { codigo: "75021597", concepto: "MARLBORO ROJO 100" },
+  { codigo: "75001322", concepto: "MARLBORO ROJO DURO" },
+  { codigo: "75001315", concepto: "MARLBORO ROJO SUAVE" },
+  { codigo: "75025271", concepto: "MARLBORO FUSION SUMER" },
+  { codigo: "75068776", concepto: "BENSON DORADO" },
+  { codigo: "75016777", concepto: "BENSON MENTHOL" },
+  { codigo: "75068783", concepto: "MARLBORO RUBI" },
+  { codigo: "75071295", concepto: "PALL MALL ALASKA" },
+  { codigo: "8346917", concepto: "PALL MALL BLANCO" },
+  { codigo: "75064648", concepto: "PALL MALL MYKONOS PEPINO" },
+  { codigo: "75052836", concepto: "PALL MALL TOKYO" },
+  { codigo: "7503040150115", concepto: "LINK ROJO" },
+  { codigo: "7502252634314", concepto: "LINK BLANCO" },
+  { codigo: "7503040150115", concepto: "LINK ICE" },
+  { codigo: "75046521", concepto: "LUCKY STRIKE" },
+  { codigo: "75031053", concepto: "MARLBORO ICE XPRESS" },
+  { codigo: "75018627", concepto: "BENSON MENTHOL LIGTH" },
+  { codigo: "75027766", concepto: "PALL MALL XL ROJO" },
+  { codigo: "7502252631313", concepto: "GARAÑON ROJO" },
+  { codigo: "7503040150023", concepto: "GARAÑON BLANCO" },
+  { codigo: "1247", concepto: "CELOFAN ROJO" },
+  { codigo: "2229", concepto: "CELOFAN AMARILLO" },
+  { codigo: "1248", concepto: "CELOFAN BLANCO" },
+  { codigo: "1249", concepto: "NUEZ PEDAZO" },
+  { codigo: "1250", concepto: "NUEZ ENTERA" },
+  { codigo: "230001", concepto: "NUEZ GRANILLO" },
+  { codigo: "40", concepto: "CHILE JAPONES" }
+];
+
 async function cargarProductos() {
-
     const snap = await getDocs(collection(db, "productos"));
-    let activos = [];
 
+    let activos = [];
     snap.forEach(d => {
         const x = d.data();
         if (x.activo === true) {
@@ -76,48 +109,14 @@ async function cargarProductos() {
         }
     });
 
-    // 🔥 LISTA FIJA MANUAL QUE ME DISCLSTE
-    const productosFijosManuales = [
-      { codigo: "75035259", descripcion: "MARLBORO BLANCO 100" },
-      { codigo: "75068738", descripcion: "MARLBORO BLANCO DURO" },
-      { codigo: "75068745", descripcion: "MARLBORO BLANCO SUAVE" },
-      { codigo: "75021597", descripcion: "MARLBORO ROJO 100" },
-      { codigo: "75001322", descripcion: "MARLBORO ROJO DURO" },
-      { codigo: "75001315", descripcion: "MARLBORO ROJO SUAVE" },
-      { codigo: "75025271", descripcion: "MARLBORO FUSION SUMER" },
-      { codigo: "75068776", descripcion: "BENSON DORADO" },
-      { codigo: "75016777", descripcion: "BENSON MENTHOL" },
-      { codigo: "75068783", descripcion: "MARLBORO RUBI" },
-      { codigo: "75071295", descripcion: "PALL MALL ALASKA" },
-      { codigo: "08346917", descripcion: "PALL MALL BLANCO" },
-      { codigo: "75064648", descripcion: "PALL MALL MYKONOS PEPINO" },
-      { codigo: "75052836", descripcion: "PALL MALL TOKYO" },
-      { codigo: "7503040150115", descripcion: "LINK ROJO" },
-      { codigo: "7502252634314", descripcion: "LINK BLANCO" },
-      { codigo: "7503040150115", descripcion: "LINK ICE" },
-      { codigo: "75046521", descripcion: "LUCKY STRIKE" },
-      { codigo: "75031053", descripcion: "MARLBORO ICE XPRESS" },
-      { codigo: "75018627", descripcion: "BENSON MENTHOL LIGHT" },
-      { codigo: "75027766", descripcion: "PALL MALL XL ROJO" },
-      { codigo: "7502252631313", descripcion: "GARAÑON ROJO" },
-      { codigo: "7503040150023", descripcion: "GARAÑON BLANCO" },
-      { codigo: "1247", descripcion: "CELOFAN ROJO" },
-      { codigo: "2229", descripcion: "CELOFAN AMARILLO" },
-      { codigo: "1248", descripcion: "CELOFAN BLANCO" },
-      { codigo: "1249", descripcion: "NUEZ PEDAZO" },
-      { codigo: "1250", descripcion: "NUEZ ENTERA" },
-      { codigo: "230001", descripcion: "NUEZ GRANILLO" },
-      { codigo: "40", descripcion: "CHILE JAPONES" }
-    ];
-
-    // 🔥 20 ALEATORIOS
+    // 🔥 Aleatorios de Firestore (20)
     const aleatorios = activos.sort(() => 0.5 - Math.random()).slice(0, 20);
 
-    // 🔥 LISTA FINAL
+    // 🔥 Mezclar los FIJOS + ALEATORIOS
     const finalList = [
-        ...productosFijosManuales.map(p => ({
-            id: p.codigo,
-            concepto: p.descripcion,
+        ...FIJOS_MANUALES.map((p, index) => ({
+            id: `fijo_${index}`,
+            concepto: p.concepto,
             codigoBarra: p.codigo
         })),
         ...aleatorios
@@ -125,52 +124,52 @@ async function cargarProductos() {
 
     localStorage.setItem("aud_productos", JSON.stringify(finalList));
 
-    // ------------------------------------------------
-    // 🔥 MOSTRAR FIJOS MANUALES
-    // ------------------------------------------------
+    /* ---------------------------------------------------------
+       ⬇️ MOSTRAR FIJOS
+    ----------------------------------------------------------*/
     lista.innerHTML += `
-        <h3 style="color:#00416A; margin-top:20px;">Inventario Fijo</h3>
+        <h3 style="color:#00416A; margin-top:20px;">Inventario Fijo – Productos Esenciales</h3>
     `;
 
-    productosFijosManuales.forEach(p => {
+    FIJOS_MANUALES.forEach((p, i) => {
         lista.innerHTML += `
-          <div class="item" style="border-left:6px solid #d9534f;">
-            <b>${p.descripcion}</b><br>
-            <small>Código: ${p.codigo}</small>
-            <input id="p_${p.codigo}" type="number" placeholder="Cantidad contada">
-          </div>
+            <div class="item" style="border-left:6px solid #d9534f;">
+                <b>${p.concepto}</b><br>
+                <small>Código: ${p.codigo}</small>
+                <input id="p_fijo_${i}" type="number" placeholder="Cantidad contada">
+            </div>
         `;
     });
 
-    // ------------------------------------------------
-    // 🔥 MOSTRAR ALEATORIOS
-    // ------------------------------------------------
+    /* ---------------------------------------------------------
+       ⬇️ MOSTRAR ALEATORIOS
+    ----------------------------------------------------------*/
     lista.innerHTML += `
         <h3 style="color:#00416A; margin-top:40px;">Inventario Aleatorio</h3>
     `;
 
     aleatorios.forEach(p => {
         lista.innerHTML += `
-          <div class="item">
-            <b>${p.concepto}</b><br>
-            <small>Código: ${p.codigoBarra}</small>
-            <input id="p_${p.id}" type="number" placeholder="Cantidad contada">
-          </div>
+            <div class="item">
+                <b>${p.concepto}</b><br>
+                <small>Código: ${p.codigoBarra}</small>
+                <input id="p_${p.id}" type="number" placeholder="Cantidad contada">
+            </div>
         `;
     });
 }
 
 cargarProductos();
+
 </script>
 
 <script>
 function finalizar(){
     if(confirm("¿Seguro de continuar? Los campos vacíos serán tomados como 0")){
-        
         const productos = JSON.parse(localStorage.getItem("aud_productos"));
         let captura = [];
 
-        productos.forEach(p => {
+        productos.forEach(p=>{
             const cant = document.getElementById(`p_${p.id}`).value;
             captura.push({
                 id: p.id,

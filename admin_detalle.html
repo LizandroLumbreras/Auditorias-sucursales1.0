@@ -4,22 +4,58 @@
 <meta charset="UTF-8">
 <title>Detalle de Auditoría</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
 body{
     background:#f4f6fb;
-    padding:20px;
+    margin:0; padding:20px;
     font-family:'Poppins',sans-serif;
 }
-h2{ color:#00416A; }
-.card{
-    background:white; padding:20px;
-    border-radius:12px;
+h2{
+    color:#00416A;
     margin-bottom:20px;
+}
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
     box-shadow:0 4px 12px rgba(0,0,0,.15);
+    margin-bottom:25px;
+}
+.card h3{
+    margin-top:0;
+    color:#00416A;
+}
+
+/* Tarjeta para cada producto */
+#invList.grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap:15px;
+    margin-top:15px;
+}
+.card-item{
+    background:white;
+    padding:15px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+    font-size:14px;
+}
+.card-item small{
+    color:#555;
+}
+
+/* Otros módulos */
+.section-title{
+    font-size:18px;
+    font-weight:600;
+    color:#00416A;
+    margin-top:30px;
 }
 </style>
+
 </head>
 
 <body>
@@ -28,63 +64,97 @@ h2{ color:#00416A; }
 
 <div id="contenido"></div>
 
-<button onclick="location.href='admin_dashboard.html'">Regresar</button>
+<!-- Contenedor del Inventario -->
+<h3 class="section-title">Inventario</h3>
+<div id="invList" class="grid"></div>
+
+<!-- Contenedor de Caducidades -->
+<h3 class="section-title">Caducidades</h3>
+<div id="cadList" class="card"></div>
+
+<!-- Contenedor de Devoluciones -->
+<h3 class="section-title">Devoluciones</h3>
+<div id="devList" class="card"></div>
+
+<!-- Contenedor de Incidencias -->
+<h3 class="section-title">Incidencias</h3>
+<div id="incList" class="card"></div>
+
+<!-- Contenedor de Sugerencias -->
+<h3 class="section-title">Sugerencias</h3>
+<div id="sugList" class="card"></div>
 
 <script type="module">
 import { db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const suc = localStorage.getItem("admin_last_sucursal");
-const id  = localStorage.getItem("admin_last_id");
+/* Validación Login Admin */
+if(localStorage.getItem("admin_login")!=="true"){
+    window.location="admin_login.html";
+}
 
-const ref = doc(db, `auditorias/${suc}/auditorias_registros/${id}`);
-const snap = await getDoc(ref);
+/* Recuperar datos desde el dashboard */
+const sucursal = localStorage.getItem("admin_last_sucursal");
+const id = localStorage.getItem("admin_last_id");
 
-if(!snap.exists()){
-    document.getElementById("contenido").innerHTML = "No encontrado.";
-}else{
+async function cargarDetalle(){
+    const ref = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
+    const snap = await getDoc(ref);
+
+    if(!snap.exists()){
+        document.getElementById("contenido").innerHTML =
+            "<p>No se encontró el registro.</p>";
+        return;
+    }
+
     const x = snap.data();
 
+    /* Datos generales */
     document.getElementById("contenido").innerHTML = `
         <div class="card">
             <h3>Datos Generales</h3>
             <p><b>Nombre:</b> ${x.nombre}</p>
-            <p><b>Usuario:</b> ${x.usuario}</p>
+            <p><b>Usuario:</b> ${x.usuario || "No registrado"}</p>
             <p><b>Sucursal:</b> ${x.sucursal}</p>
             <p><b>Fecha:</b> ${x.fecha}</p>
         </div>
-
-        <div class="card">
-            <h3>Inventario</h3>
-            <pre>${JSON.stringify(x.inventario,null,2)}</pre>
-        </div>
-
-        <div class="card">
-            <h3>Caducidades</h3>
-            <pre>${JSON.stringify(x.caducidades,null,2)}</pre>
-        </div>
-
-        <div class="card">
-            <h3>Devoluciones</h3>
-            <pre>${JSON.stringify(x.devoluciones,null,2)}</pre>
-        </div>
-
-        <div class="card">
-            <h3>Incidencias</h3>
-            <p>${x.incidencias}</p>
-        </div>
-
-        <div class="card">
-            <h3>Sugerencias</h3>
-            <p>${x.sugerencias}</p>
-        </div>
-
-        <div class="card">
-            <h3>Firma</h3>
-            <img src="${x.firma}" width="250">
-        </div>
     `;
+
+    /* INVENTARIO BONITO */
+    renderInventario(x.inventario || []);
+
+    /* CADUCIDADES */
+    document.getElementById("cadList").innerHTML =
+        x.caducidades?.join("<br><br>") || "Sin información";
+
+    /* DEVOLUCIONES */
+    document.getElementById("devList").innerHTML =
+        x.devoluciones?.join("<br><br>") || "Sin información";
+
+    /* INCIDENCIAS */
+    document.getElementById("incList").innerHTML =
+        x.incidencias || "Sin incidencias";
+
+    /* SUGERENCIAS */
+    document.getElementById("sugList").innerHTML =
+        x.sugerencias || "Sin sugerencias";
 }
+
+/* Renderizador visual del inventario */
+function renderInventario(lista){
+    const cont = document.getElementById("invList");
+
+    cont.innerHTML = lista.map(p => `
+        <div class="card-item">
+            <b>${p.concepto}</b><br>
+            <small><b>Código:</b> ${p.codigo}</small><br>
+            <small><b>Cantidad:</b> ${p.cantidad}</small>
+        </div>
+    `).join("");
+}
+
+cargarDetalle();
 </script>
 
 </body>

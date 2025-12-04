@@ -90,8 +90,26 @@ if(localStorage.getItem("admin_login")!=="true"){
     window.location="admin_login.html";
 }
 
+/* 🔥 Normalizar sucursal (acepta mayúsculas y minúsculas) */
+const normalizarSucursal = (txt) => {
+    const t = txt.trim().toLowerCase();
+
+    const mapa = {
+        "allende1": "allende1",
+        "allende2": "allende2",
+        "central": "central",
+        "montemorelos": "montemorelos",
+        "provileon": "PROVILEON",
+        "rioverde": "rioverde"
+    };
+
+    return mapa[t] || null;
+};
+
 async function cargar(){
-    const suc = document.getElementById("selSucursal").value;
+    const sel = document.getElementById("selSucursal").value;
+    const suc = normalizarSucursal(sel);   // 🔥 convertir automáticamente
+
     const lista = document.getElementById("lista");
     lista.innerHTML = "";
 
@@ -120,7 +138,7 @@ window.ver = (suc,id)=>{
     localStorage.setItem("admin_last_sucursal", suc);
     localStorage.setItem("admin_last_id", id);
     window.location = "admin_detalle.html";
-}
+};
 </script>
 
 </body>

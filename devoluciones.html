@@ -24,4 +24,108 @@ h2{
     background:white;
     padding:20px;
     border-radius:14px;
-    box
+    box-shadow:0 4px 14px rgba(0,0,0,.2);
+    max-width:450px;
+    margin:auto;
+}
+
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    font-size:17px;
+    margin-top:15px;
+    cursor:pointer;
+}
+
+.btn-si{
+    background:#00416A;
+    color:white;
+}
+
+.btn-no{
+    background:#bbb;
+    color:#222;
+}
+
+/* MODAL */
+#modal{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,.6);
+    justify-content:center;
+    align-items:center;
+}
+
+#modal .box{
+    background:white;
+    padding:25px;
+    border-radius:14px;
+    width:90%;
+    max-width:400px;
+    text-align:center;
+    box-shadow:0 4px 15px rgba(0,0,0,.3);
+}
+
+.modal-btn{
+    padding:12px 18px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    margin:10px;
+}
+
+.si2{
+    background:#00416A;
+    color:white;
+}
+
+.no2{
+    background:#ccc;
+}
+</style>
+</head>
+
+<body>
+
+<h2>¿Se hicieron devoluciones?</h2>
+
+<div class="card">
+    <button class="btn-si" onclick="si()">Sí, se hicieron devoluciones</button>
+    <button class="btn-no" onclick="no()">No se hicieron devoluciones</button>
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div class="box">
+      <h3 style="color:#00416A;">Revisión requerida</h3>
+      <p>Recuerda revisar devoluciones.<br>¿Deseas registrar alguna devolución ahora?</p>
+
+      <button class="modal-btn si2" onclick="redir_si()">Sí</button>
+      <button class="modal-btn no2" onclick="redir_no()">No</button>
+  </div>
+</div>
+
+<script>
+function si(){
+    window.location = "devoluciones_captura.html";
+}
+
+function no(){
+    document.getElementById("modal").style.display = "flex";
+}
+
+function redir_si(){
+    window.location = "devoluciones_captura.html";
+}
+
+function redir_no(){
+    window.location = "incidencias.html";
+}
+</script>
+
+</body>
+</html>

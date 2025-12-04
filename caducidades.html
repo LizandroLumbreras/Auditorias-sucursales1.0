@@ -15,19 +15,23 @@
  }
  h2{ text-align:center; color:#00416A; }
 
- .item{
+ .pregunta{
    background:white;
-   padding:15px;
-   border-radius:12px;
-   margin-bottom:12px;
+   padding:20px;
+   border-radius:14px;
+   margin-bottom:18px;
    box-shadow:0 4px 12px rgba(0,0,0,.1);
  }
- input{
+
+ textarea{
    width:100%;
-   padding:12px;
-   border-radius:8px;
-   border:1px solid #ccc;
+   height:90px;
+   border-radius:10px;
+   border:1px solid #bbb;
+   padding:10px;
    margin-top:10px;
+   resize:none;
+   font-size:15px;
  }
 
  button{
@@ -35,10 +39,11 @@
    padding:15px;
    background:#00416A;
    color:white;
+   font-size:17px;
    border:none;
    border-radius:12px;
-   font-size:17px;
    margin-top:25px;
+   cursor:pointer;
  }
 </style>
 </head>
@@ -47,66 +52,44 @@
 
 <h2>Revisión de Caducidades</h2>
 
-<div id="lista"></div>
+<div class="pregunta">
+  <b>1. Pásame las fechas de caducidad de CREMAS y ADEREZOS:</b>
+  <textarea id="p1" placeholder="Ej. Aderezo César 05/2025, Crema 18/2024..."></textarea>
+</div>
+
+<div class="pregunta">
+  <b>2. Revisa caducidades de BIG COLA y LÍQUIDOS:</b>
+  <textarea id="p2" placeholder="Ej. Big Cola 2L vence 07/2025, Jugos 09/2024..."></textarea>
+</div>
+
+<div class="pregunta">
+  <b>3. Revisa caducidades de NUTRI LECHE y LÁCTEOS:</b>
+  <textarea id="p3" placeholder="Ej. Nutri Leche vence 03/2025, Yogurt 11/2024..."></textarea>
+</div>
+
+<div class="pregunta">
+  <b>4. ¿Algún otro producto con caducidad próxima?</b>
+  <textarea id="p4" placeholder="Escribe aquí cualquier otra observación..."></textarea>
+</div>
 
 <button onclick="continuar()">Continuar</button>
 
-<script type="module">
-
-/* FIREBASE IMPORT (same repo) */
-import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
-import { collection, getDocs }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const lista = document.getElementById("lista");
-
-async function cargarCaducidades() {
-    const snap = await getDocs(collection(db, "productos"));
-    let activos = [];
-
-    snap.forEach(d => {
-        const x = d.data();
-        if (x.activo === true) {
-            activos.push({ id: d.id, ...x });
-        }
-    });
-
-    // 12 productos aleatorios
-    const selec = activos.sort(() => 0.5 - Math.random()).slice(0, 12);
-    localStorage.setItem("aud_caducidades_lista", JSON.stringify(selec));
-
-    selec.forEach(p => {
-        lista.innerHTML += `
-            <div class="item">
-                <b>${p.concepto}</b><br>
-                <small>Código: ${p.codigoBarra}</small>
-                <input id="f_${p.id}" type="date" placeholder="Fecha de caducidad">
-            </div>
-        `;
-    });
-}
-
-cargarCaducidades();
-</script>
-
 <script>
-function continuar() {
-    const productos = JSON.parse(localStorage.getItem("aud_caducidades_lista"));
-    let captura = [];
+function continuar(){
+    const p1 = document.getElementById("p1").value.trim();
+    const p2 = document.getElementById("p2").value.trim();
+    const p3 = document.getElementById("p3").value.trim();
+    const p4 = document.getElementById("p4").value.trim();
 
-    productos.forEach(p => {
-        const fecha = document.getElementById(`f_${p.id}`).value || "";
-        captura.push({
-            id: p.id,
-            concepto: p.concepto,
-            codigo: p.codigoBarra,
-            caducidad: fecha
-        });
-    });
+    if(!p1 || !p2 || !p3 || !p4){
+        alert("Responde todas las preguntas antes de continuar.");
+        return;
+    }
 
-    localStorage.setItem("aud_caducidades", JSON.stringify(captura));
+    const datos = { p1, p2, p3, p4 };
 
-    // pasar a devoluciones
+    localStorage.setItem("aud_caducidades", JSON.stringify(datos));
+
     window.location = "devoluciones.html";
 }
 </script>

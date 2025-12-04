@@ -30,10 +30,30 @@ select{
     box-shadow:0 4px 12px rgba(0,0,0,.15);
 }
 button{
-    background:#00416A; color:white;
-    border:none; padding:10px;
-    border-radius:10px; cursor:pointer;
+    background:#00416A; 
+    color:white;
+    border:none; 
+    padding:10px 16px;
+    border-radius:10px; 
+    cursor:pointer;
     margin-top:15px;
+    font-size:15px;
+}
+
+/* Tarjeta especial para Inventario Fijo */
+.card-fijo{
+    background:#00416A;
+    color:white;
+    padding:20px;
+    margin:20px auto;
+    max-width:700px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.20);
+    cursor:pointer;
+    transition:.3s;
+}
+.card-fijo:hover{
+    background:#0c6cbd;
 }
 </style>
 </head>
@@ -54,10 +74,18 @@ button{
 
 <div id="lista"></div>
 
+<!-- 🔥 Nueva tarjeta para controlar la lista FIJA de auditoría -->
+<div class="card-fijo" onclick="location.href='admin_fijos.html'">
+    <h3 style="margin:0;">Inventario Fijo (Auditoría)</h3>
+    <p style="margin:0; opacity:0.9;">Agregar, eliminar o editar la lista de productos fijos</p>
+</div>
+
 <script type="module">
 import { db } from "./firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, getDocs } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+/* Validación de sesión */
 if(localStorage.getItem("admin_login")!=="true"){
     window.location="admin_login.html";
 }

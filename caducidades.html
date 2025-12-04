@@ -69,7 +69,12 @@
 
 <div class="pregunta">
   <b>4. ¿Algún otro producto con caducidad próxima?</b>
-  <textarea id="p4" placeholder="Escribe aquí cualquier otra observación..."></textarea>
+  <textarea id="p4" placeholder="Observaciones adicionales..."></textarea>
+</div>
+
+<div class="pregunta">
+  <b>5. ¿Detectaste producto hinchado, dañado o con mala presentación?</b>
+  <textarea id="p5" placeholder="Describe el producto y la condición encontrada..."></textarea>
 </div>
 
 <button onclick="continuar()">Continuar</button>
@@ -80,13 +85,14 @@ function continuar(){
     const p2 = document.getElementById("p2").value.trim();
     const p3 = document.getElementById("p3").value.trim();
     const p4 = document.getElementById("p4").value.trim();
+    const p5 = document.getElementById("p5").value.trim();
 
-    if(!p1 || !p2 || !p3 || !p4){
+    if(!p1 || !p2 || !p3 || !p4 || !p5){
         alert("Responde todas las preguntas antes de continuar.");
         return;
     }
 
-    const datos = { p1, p2, p3, p4 };
+    const datos = { p1, p2, p3, p4, p5 };
 
     localStorage.setItem("aud_caducidades", JSON.stringify(datos));
 

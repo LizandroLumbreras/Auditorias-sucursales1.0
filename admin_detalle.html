@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Detalle de Auditoría</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+    background:#f4f6fb;
+    padding:20px;
+    font-family:'Poppins',sans-serif;
+}
+h2{ color:#00416A; }
+.card{
+    background:white; padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
+</style>
+</head>
+
+<body>
+
+<h2>Detalle de Auditoría</h2>
+
+<div id="contenido"></div>
+
+<button onclick="location.href='admin_dashboard.html'">Regresar</button>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const suc = localStorage.getItem("admin_last_sucursal");
+const id  = localStorage.getItem("admin_last_id");
+
+const ref = doc(db, `auditorias/${suc}/auditorias_registros/${id}`);
+const snap = await getDoc(ref);
+
+if(!snap.exists()){
+    document.getElementById("contenido").innerHTML = "No encontrado.";
+}else{
+    const x = snap.data();
+
+    document.getElementById("contenido").innerHTML = `
+        <div class="card">
+            <h3>Datos Generales</h3>
+            <p><b>Nombre:</b> ${x.nombre}</p>
+            <p><b>Usuario:</b> ${x.usuario}</p>
+            <p><b>Sucursal:</b> ${x.sucursal}</p>
+            <p><b>Fecha:</b> ${x.fecha}</p>
+        </div>
+
+        <div class="card">
+            <h3>Inventario</h3>
+            <pre>${JSON.stringify(x.inventario,null,2)}</pre>
+        </div>
+
+        <div class="card">
+            <h3>Caducidades</h3>
+            <pre>${JSON.stringify(x.caducidades,null,2)}</pre>
+        </div>
+
+        <div class="card">
+            <h3>Devoluciones</h3>
+            <pre>${JSON.stringify(x.devoluciones,null,2)}</pre>
+        </div>
+
+        <div class="card">
+            <h3>Incidencias</h3>
+            <p>${x.incidencias}</p>
+        </div>
+
+        <div class="card">
+            <h3>Sugerencias</h3>
+            <p>${x.sugerencias}</p>
+        </div>
+
+        <div class="card">
+            <h3>Firma</h3>
+            <img src="${x.firma}" width="250">
+        </div>
+    `;
+}
+</script>
+
+</body>
+</html>

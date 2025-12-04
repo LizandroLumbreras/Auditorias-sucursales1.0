@@ -55,23 +55,40 @@
 <button onclick="finalizar()">Finalizar</button>
 
 <script type="module">
-import { db } from "./firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* 🔥 IMPORTACIÓN CORRECTA PARA GITHUB PAGES */
+import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
+
+import { collection, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const lista = document.getElementById("lista");
 
 async function cargarProductos(){
-    const snap = await getDocs(collection(db, "articulos")); // tu colección de productos
+
+    /* 🔥 CONSULTA CORRECTA */
+    const snap = await getDocs(collection(db, "articulos"));
 
     let activos = [];
-    snap.forEach(d=>{
-        const x = d.data();
+    snap.forEach(doc=>{
+        const x = doc.data();
         if(x.activo === true){
-            activos.push({ id:d.id, ...x });
+            activos.push({ id: doc.id, ...x });
         }
     });
 
-    const seleccion = activos.sort(()=>0.5-Math.random()).slice(0,20);
+    /* 🔥 SI NO HAY PRODUCTOS ACTIVOS */
+    if (activos.length === 0){
+        lista.innerHTML = `
+            <p style="text-align:center;color:red;">
+            No se encontraron productos activos.<br>
+            Revisa tu colección "articulos".</p>
+        `;
+        return;
+    }
+
+    /* 🔥 20 PRODUCTOS RANDOM */
+    const seleccion = activos.sort(()=>0.5 - Math.random()).slice(0,20);
 
     seleccion.forEach(p=>{
         lista.innerHTML += `
@@ -106,7 +123,7 @@ function finalizar(){
         });
 
         localStorage.setItem("aud_captura", JSON.stringify(captura));
-        window.location="firma.html";
+        window.location = "firma.html";
     }
 }
 </script>

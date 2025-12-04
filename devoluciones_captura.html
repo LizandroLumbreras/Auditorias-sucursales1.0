@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Captura de Devoluciones</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+ body{
+   font-family:'Poppins',sans-serif;
+   background:#f4f6fb;
+   padding:20px;
+ }
+ h2{
+   text-align:center;
+   color:#00416A;
+   margin-bottom:20px;
+ }
+
+ .card{
+    background:white;
+    padding:18px;
+    border-radius:14px;
+    box-shadow:0 4px 14px rgba(0,0,0,.15);
+    margin-bottom:20px;
+ }
+
+ input, textarea{
+   width:100%;
+   padding:12px;
+   border-radius:10px;
+   border:1px solid #bbb;
+   margin-top:10px;
+ }
+
+ button{
+   width:100%;
+   padding:15px;
+   background:#00416A;
+   color:white;
+   border:none;
+   border-radius:12px;
+   font-size:17px;
+   margin-top:15px;
+   cursor:pointer;
+ }
+
+ .lista-item{
+    background:white;
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:12px;
+    box-shadow:0 3px 10px rgba(0,0,0,.15);
+ }
+ .eliminar{
+    background:#cc0000;
+    margin-top:10px;
+ }
+</style>
+</head>
+
+<body>
+
+<h2>Captura de Devoluciones</h2>
+
+<div class="card">
+
+    <label>Código del producto:</label>
+    <input id="codigo" placeholder="Escanea o escribe el código">
+
+    <label>Descripción:</label>
+    <input id="descripcion" disabled>
+
+    <label>Cantidad devuelta:</label>
+    <input id="cantidad" type="number">
+
+    <label>Motivo:</label>
+    <textarea id="motivo" placeholder="Motivo de la devolución"></textarea>
+
+    <button onclick="agregar()">Agregar devolución</button>
+</div>
+
+<h2 style="margin-top:30px;">Devoluciones agregadas</h2>
+
+<div id="lista"></div>
+
+<button onclick="continuar()">Continuar</button>
+
+<script type="module">
+import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+let productos = [];
+let devoluciones = [];
+
+// cargar catálogo
+async function cargarProductos(){
+    const snap = await getDocs(collection(db, "productos"));
+    snap.forEach(doc => productos.push({ id: doc.id, ...doc.data() }));
+}
+cargarProductos();
+
+document.getElementById("codigo").addEventListener("change", ()=>{
+    const codigo = document.getElementById("codigo").value.trim();
+
+    const prod = productos.find(p =>
+        p.codigoBarra == codigo ||
+        p.codigobarras == codigo ||
+        p.id == codigo
+    );
+
+    if(prod){
+        document.getElementById("descripcion").value = prod.concepto;
+    }else{
+        document.getElementById("descripcion").value = "NO ENCONTRADO";
+    }
+});
+
+window.agregar = function(){
+
+    const codigo = document.getElementById("codigo").value.trim();
+    const descripcion = document.getElementById("descripcion").value.trim();
+    const cantidad = Number(document.getElementById("cantidad").value);
+    const motivo = document.getElementById("motivo").value.trim();
+
+    if(!codigo || !descripcion || !cantidad || !motivo){
+        alert("Completa todos los campos");
+        return;
+    }
+
+    devoluciones.push({ codigo, descripcion, cantidad, motivo });
+    render();
+    
+    document.getElementById("codigo").value = "";
+    document.getElementById("descripcion").value = "";
+    document.getElementById("cantidad").value = "";
+    document.getElementById("motivo").value = "";
+}
+
+function render(){
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    devoluciones.forEach((d,i)=>{
+        lista.innerHTML += `
+            <div class="lista-item">
+                <b>${d.descripcion}</b><br>
+                Código: ${d.codigo}<br>
+                Cantidad: ${d.cantidad}<br>
+                Motivo: ${d.motivo}<br>
+                <button class="eliminar" onclick="eliminar(${i})">Eliminar</button>
+            </div>
+        `;
+    });
+
+    localStorage.setItem("aud_devoluciones", JSON.stringify(devoluciones));
+}
+
+window.eliminar = function(i){
+    devoluciones.splice(i,1);
+    render();
+}
+
+window.continuar = function(){
+    if(devoluciones.length == 0){
+        if(!confirm("No agregaste devoluciones. ¿Deseas continuar?")){
+            return;
+        }
+    }
+    localStorage.setItem("aud_devoluciones", JSON.stringify(devoluciones));
+    window.location = "incidencias.html";
+}
+</script>
+
+</body>
+</html>

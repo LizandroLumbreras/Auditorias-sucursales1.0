@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Auditoría – Registro</title>
+<title>Auditoría – Login</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
@@ -17,7 +17,8 @@
  }
 
  .card{
-   background:white; color:#222;
+   background:white;
+   color:#222;
    padding:30px;
    width:90%; max-width:420px;
    border-radius:16px;
@@ -25,15 +26,19 @@
    animation:fade 0.6s ease;
  }
 
- @keyframes fade{ from{opacity:0; transform:translateY(20px);} to{opacity:1;} }
+ @keyframes fade{
+   from{opacity:0; transform:translateY(20px);}
+   to{opacity:1;}
+ }
 
  h2{
    text-align:center;
    color:#00416A;
    font-weight:600;
+   margin-bottom:20px;
  }
 
- input,select{
+ input{
    width:100%; padding:14px;
    border-radius:10px; border:1px solid #ccc;
    margin-top:10px; font-size:15px;
@@ -47,52 +52,86 @@
    cursor:pointer; transition:.3s;
  }
  button:hover{ background:#0c6cbd; }
+
+ .error{
+   color:red;
+   font-size:14px;
+   margin-top:10px;
+   display:none;
+   text-align:center;
+ }
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <h2>Auditoría Aleatoria</h2>
+  <h2>Iniciar Sesión</h2>
 
-  <label>Sucursal:</label>
-  <select id="sucursal">
-      <option value="">Selecciona…</option>
-      <option>allende1</option>
-      <option>allende2</option>
-      <option>central</option>
-      <option>montemorelos</option>
-      <option>provileon</option>
-      <option>rioverde</option>
-  </select>
+  <label>Usuario:</label>
+  <input id="usuario" placeholder="Ej: LIZANDRO">
 
-  <label>Nombre del encargado:</label>
-  <input id="nombre" placeholder="Ej. Carlos Pérez">
+  <label>Contraseña:</label>
+  <input id="password" type="password" placeholder="•••••••">
 
-  <label>Fecha y hora:</label>
-  <input type="datetime-local" id="fecha">
+  <div id="msg" class="error">Usuario o contraseña incorrectos</div>
 
-  <button onclick="continuar()">Iniciar Auditoría</button>
+  <button onclick="login()">Entrar</button>
 </div>
 
-<script>
-function continuar(){
-    const suc = sucursal.value.trim();
-    const nom = nombre.value.trim();
-    const fec = fecha.value;
+<script type="module">
+import { db } from "./firebase.js";
+import { collection, getDocs } 
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    if(!suc || !nom || !fec){
-        alert("Completa todos los campos");
+async function login(){
+
+    const userInput = usuario.value.trim();
+    const passInput = password.value.trim();
+    const msg = document.getElementById("msg");
+
+    msg.style.display = "none";
+
+    if(!userInput || !passInput){
+        msg.textContent = "Llena todos los campos";
+        msg.style.display = "block";
         return;
     }
 
-    localStorage.setItem("aud_sucursal", suc);
-    localStorage.setItem("aud_nombre", nom);
-    localStorage.setItem("aud_fecha", fec);
+    // Leer usuarios desde Firestore
+    const snap = await getDocs(collection(db, "usuarios_ruta"));
 
-    // Pasar a la siguiente página
+    let encontrado = null;
+
+    snap.forEach(doc=>{
+        const u = doc.data();
+
+        if(u.usuario === userInput && u.password === passInput && u.activo === true){
+            encontrado = u;
+        }
+    });
+
+    if(!encontrado){
+        msg.textContent = "Usuario o contraseña incorrectos";
+        msg.style.display = "block";
+        return;
+    }
+
+    // Guardar credenciales en localStorage
+    localStorage.setItem("aud_sucursal", encontrado.rutaId);
+    localStorage.setItem("aud_nombre", encontrado.nombre);
+    localStorage.setItem("aud_usuario", encontrado.usuario);
+
+    // Fecha automática
+    const fecha = new Date().toISOString().slice(0,16);
+    localStorage.setItem("aud_fecha", fecha);
+
+    // Continuar a la auditoría
     window.location = "inventario.html";
 }
+
+window.login = login;
+
 </script>
 
 </body>

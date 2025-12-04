@@ -23,19 +23,11 @@
    width:90%; max-width:420px;
    border-radius:16px;
    box-shadow:0 8px 25px rgba(0,0,0,.25);
-   animation:fade 0.6s ease;
- }
-
- @keyframes fade{
-   from{opacity:0; transform:translateY(20px);}
-   to{opacity:1;}
  }
 
  h2{
    text-align:center;
    color:#00416A;
-   font-weight:600;
-   margin-bottom:20px;
  }
 
  input{
@@ -51,14 +43,10 @@
    margin-top:20px; font-size:17px;
    cursor:pointer; transition:.3s;
  }
- button:hover{ background:#0c6cbd; }
 
  .error{
-   color:red;
-   font-size:14px;
+   color:red; display:none; text-align:center;
    margin-top:10px;
-   display:none;
-   text-align:center;
  }
 </style>
 </head>
@@ -69,10 +57,10 @@
   <h2>Iniciar Sesión</h2>
 
   <label>Usuario:</label>
-  <input id="usuario" placeholder="Ej: LIZANDRO">
+  <input id="usuario" placeholder="Ej. LIZANDRO">
 
   <label>Contraseña:</label>
-  <input id="password" type="password" placeholder="•••••••">
+  <input id="password" type="password" placeholder="••••••••">
 
   <div id="msg" class="error">Usuario o contraseña incorrectos</div>
 
@@ -88,50 +76,51 @@ async function login(){
 
     const userInput = usuario.value.trim();
     const passInput = password.value.trim();
-    const msg = document.getElementById("msg");
-
+    const msg       = document.getElementById("msg");
     msg.style.display = "none";
 
     if(!userInput || !passInput){
-        msg.textContent = "Llena todos los campos";
+        msg.textContent = "Completa todos los campos";
         msg.style.display = "block";
         return;
     }
 
-    // Leer usuarios desde Firestore
     const snap = await getDocs(collection(db, "usuarios_ruta"));
 
-    let encontrado = null;
+    let usuarioData = null;
 
     snap.forEach(doc=>{
-        const u = doc.data();
-
-        if(u.usuario === userInput && u.password === passInput && u.activo === true){
-            encontrado = u;
+        const x = doc.data();
+        if(x.usuario === userInput && x.password === passInput && x.activo === true){
+            usuarioData = x;
         }
     });
 
-    if(!encontrado){
+    if(!usuarioData){
         msg.textContent = "Usuario o contraseña incorrectos";
         msg.style.display = "block";
         return;
     }
 
-    // Guardar credenciales en localStorage
-    localStorage.setItem("aud_sucursal", encontrado.rutaId);
-    localStorage.setItem("aud_nombre", encontrado.nombre);
-    localStorage.setItem("aud_usuario", encontrado.usuario);
+    // GUARDAR DATOS EN LOCALSTORAGE
+    localStorage.setItem("aud_nombre",   usuarioData.nombre);
+    localStorage.setItem("aud_sucursal", usuarioData.rutaId);
+    localStorage.setItem("aud_usuario",  usuarioData.usuario);
 
-    // Fecha automática
+    // FECHA AUTOMÁTICA
     const fecha = new Date().toISOString().slice(0,16);
     localStorage.setItem("aud_fecha", fecha);
 
-    // Continuar a la auditoría
-    window.location = "inventario.html";
+    // 🔥 RUTA SEGÚN EL ROL
+    if(usuarioData.rol === "admin"){
+        localStorage.setItem("admin_login","true");
+        window.location = "admin_dashboard.html"; // MODULO ADMIN
+    }else{
+        window.location = "inventario.html"; // MODULO USUARIO
+    }
 }
 
 window.login = login;
-
 </script>
 
 </body>

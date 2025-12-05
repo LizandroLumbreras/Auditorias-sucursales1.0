@@ -7,40 +7,118 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
+
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco:#ffffff;
+}
+
+/* FONDO */
 body{
-    background: linear-gradient(to right,#00416A,#0c6cbd);
-    height:100vh; margin:0;
-    display:flex; justify-content:center; align-items:center;
+    margin:0;
+    height:100vh;
     font-family:'Poppins',sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg, var(--azul1), var(--azul2));
+    overflow:hidden;
+    position:relative;
 }
+
+/* ✔ MARCA DE AGUA */
+.watermark{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:620px;
+    opacity:0.10;
+    pointer-events:none;
+    z-index:0;
+}
+
+/* TARJETA */
 .card{
-    background:white;
+    background:rgba(255,255,255,0.18);
+    backdrop-filter:blur(14px);
     padding:35px;
-    width:90%; max-width:420px;
-    border-radius:15px;
-    box-shadow:0 5px 20px rgba(0,0,0,.35);
+    width:90%; 
+    max-width:420px;
+    border-radius:18px;
+    box-shadow:0 8px 35px rgba(0,0,0,.25);
+    animation: fadeUp .8s ease;
+    z-index:5;
 }
+
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(25px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
 h2{
-    color:#00416A; text-align:center;
+    text-align:center;
+    font-size:28px;
+    font-weight:600;
+    color:white;
+    margin-bottom:20px;
 }
+
+/* INPUTS */
 input{
-    width:100%; padding:14px;
-    border-radius:10px; border:1px solid #ccc;
-    margin-top:10px;
+    width:100%;
+    padding:14px 16px;
+    border-radius:12px;
+    border:none;
+    outline:none;
+    margin-top:12px;
+    background:rgba(255,255,255,0.90);
+    font-size:15px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.15);
 }
+
+/* BOTÓN */
 button{
-    width:100%; padding:14px;
-    border:none; border-radius:10px;
-    background:#00416A; color:white; font-size:17px;
-    margin-top:20px; cursor:pointer;
+    width:100%;
+    padding:15px;
+    margin-top:25px;
+    background:white;
+    color:var(--azul1);
+    border:none;
+    border-radius:12px;
+    font-size:17px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.25s ease;
+    box-shadow:0 5px 12px rgba(0,0,0,.25);
 }
+
+button:hover{
+    background:#ececec;
+    transform:translateY(-2px);
+}
+
+/* ERROR */
 .error{
-    color:red; display:none; margin-top:10px; text-align:center;
+    display:none;
+    margin-top:10px;
+    text-align:center;
+    background:rgba(255,0,0,0.25);
+    padding:8px 12px;
+    border-radius:10px;
+    color:#ffe1e1;
+    font-weight:500;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
 }
+
 </style>
 </head>
 
 <body>
+
+<!-- ✔ MARCA DE AGUA -->
+<img src="logo_proveedora.webp" class="watermark">
 
 <div class="card">
     <h2>Administrador</h2>

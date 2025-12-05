@@ -1,28 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Test Push</title>
 </head>
+
 <body style="background:#222; color:white; font-family:sans-serif; padding:40px;">
+
 <h2>Probar permiso de Notificaciones</h2>
 
-<button id="btn">Pedir permiso</button>
+<button id="btnPermiso">Pedir permiso</button>
 
-<script>
-// Solicitar permiso de notificaciones
-document.getElementById("btn").onclick = async () => {
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCK5nb6u2CGRJ8AB1aPlRn54b97bdeAFeM",
+  authDomain: "inventariopv-643f1.firebaseapp.com",
+  projectId: "inventariopv-643f1",
+  storageBucket: "inventariopv-643f1.appspot.com",
+  messagingSenderId: "96242533231",
+  appId: "1:96242533231:web:xxxxx"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const messaging = getMessaging(app);
+
+const vapidKey = "BKOnJIO8u3vqgt8NvqGN0snM3JHRm4n5Zbq2PuYrZKcgq0Za150p68KZTKbEC5QvD1pRnVTnk5UPHus-EbV2wXw";
+
+// ------------------------
+// AL HACER CLIC EN EL BOTÓN
+// ------------------------
+document.getElementById("btnPermiso").onclick = async () => {
 
     const permiso = await Notification.requestPermission();
 
-    if (permiso === "granted") {
-        new Notification("Notificaciones ACTIVADAS 👍", {
-            body: "Este navegador aceptó las notificaciones",
-            icon: "logo_proveedora.webp"
-        });
-    } else {
+    if (permiso !== "granted") {
         alert("El usuario NO aceptó notificaciones");
+        return;
     }
+
+    // Registrar Service Worker
+    const swReg = await navigator.serviceWorker.register("./sw-test.js");
+
+    // Obtener token del navegador
+    const token = await getToken(messaging, {
+        vapidKey: vapidKey,
+        serviceWorkerRegistration: swReg
+    });
+
+    // Guardar en Firestore
+    await setDoc(doc(db, "pushTokens", token), {
+        token: token,
+        creado: new Date().toISOString()
+    });
+
+    // Notificación de éxito
+    new Notification("Notificaciones ACTIVADAS 🔥", {
+        body: "Este navegador quedó registrado para recibir notificaciones",
+        icon: "logo_proveedora.webp"
+    });
+
+    alert("Token guardado:\n" + token);
 };
 </script>
 

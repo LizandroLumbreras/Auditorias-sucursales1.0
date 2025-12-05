@@ -8,63 +8,126 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
- body{
-   background:linear-gradient(to right,#00416A,#0c6cbd);
-   padding:25px;
-   color:white;
+
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco:#ffffff;
+}
+
+/* FONDO */
+body{
+   margin:0;
    font-family:'Poppins',sans-serif;
- }
+   min-height:100vh;
+   background: linear-gradient(135deg, var(--azul1), var(--azul2));
+   display:flex;
+   justify-content:center;
+   align-items:center;
+   padding:30px 20px;
+   position:relative;
+   overflow:hidden;
+}
 
- .card{
-   background:white;
-   color:#222;
-   padding:25px;
-   border-radius:16px;
-   max-width:500px;
-   margin:auto;
-   box-shadow:0 6px 20px rgba(0,0,0,.35);
+/* ✔ MARCA DE AGUA */
+.watermark{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:650px;
+    opacity:0.10;
+    pointer-events:none;
+    z-index:0;
+}
+
+/* TARJETA */
+.card{
+   width:90%;
+   max-width:520px;
+   background:rgba(255,255,255,0.18);
+   backdrop-filter:blur(14px);
+   padding:30px;
+   border-radius:18px;
+   box-shadow:0 8px 35px rgba(0,0,0,.25);
    text-align:center;
- }
+   color:white;
+   z-index:5;
+   animation: fadeUp .7s ease;
+}
 
- canvas{
-   border:2px solid #00416A;
-   border-radius:10px;
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(25px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+/* TÍTULO */
+h2{
+    color:white;
+    font-size:28px;
+    font-weight:600;
+    margin-bottom:20px;
+}
+
+/* CANVAS */
+canvas{
+   border:2px solid var(--azul1);
+   border-radius:12px;
    background:white;
    display:block;
-   margin:auto;
- }
+   margin:15px auto;
+   box-shadow:0 4px 12px rgba(0,0,0,.25);
+}
 
- button{
+/* BOTONES */
+button{
    width:100%;
-   padding:15px;
+   padding:16px;
    border:none;
    border-radius:12px;
    font-size:17px;
-   margin-top:20px;
+   font-weight:600;
    cursor:pointer;
- }
+   margin-top:18px;
+   transition:.25s ease;
+   box-shadow:0 5px 12px rgba(0,0,0,.25);
+}
 
- .btn1{
-   background:#00416A;
-   color:white;
- }
+.btn1{
+   background:white;
+   color:var(--azul1);
+}
+.btn1:hover{
+   background:#ececec;
+   transform:translateY(-2px);
+}
 
- .btn2{
+.btn2{
    background:#c62828;
    color:white;
- }
+}
+.btn2:hover{
+   background:#e53935;
+   transform:translateY(-2px);
+}
+
 </style>
 </head>
 
 <body>
 
+<!-- ✔ MARCA DE AGUA -->
+<img src="logo_proveedora.webp" class="watermark">
+
 <div class="card">
-    <h2 style="color:#00416A;">Firma del Encargado</h2>
+
+    <h2>Firma del Encargado</h2>
 
     <canvas id="canvas" width="350" height="200"></canvas>
 
     <button class="btn2" onclick="limpiar()">Limpiar firma</button>
     <button class="btn1" onclick="guardar()">Guardar Auditoría</button>
+
 </div>
 
 <script type="module">
@@ -77,7 +140,7 @@ const ctx = canvas.getContext("2d");
 
 let dibujando = false;
 
-// Dibujar firma
+/* =============== DIBUJAR FIRMA =============== */
 canvas.addEventListener("mousedown", ()=> dibujando = true);
 canvas.addEventListener("mouseup", ()=> { dibujando = false; ctx.beginPath(); });
 canvas.addEventListener("mousemove", (e)=>{
@@ -92,18 +155,18 @@ canvas.addEventListener("mousemove", (e)=>{
     ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
 });
 
+/* LIMPIAR */
 window.limpiar = ()=>{
     ctx.clearRect(0,0,350,200);
 };
 
-
-// 🔥 GUARDAR TODO EN FIRESTORE
+/* =============== GUARDAR AUDITORÍA COMPLETA =============== */
 window.guardar = async()=>{
 
     const sucursal      = localStorage.getItem("aud_sucursal");
     const nombre        = localStorage.getItem("aud_nombre");
     const fecha         = localStorage.getItem("aud_fecha");
-    const usuario       = localStorage.getItem("aud_usuario");   // 🔥 AGREGADO
+    const usuario       = localStorage.getItem("aud_usuario");
 
     const inventario    = JSON.parse(localStorage.getItem("aud_captura"));
     const caducidades   = JSON.parse(localStorage.getItem("aud_caducidades"));
@@ -116,12 +179,10 @@ window.guardar = async()=>{
     const data = {
         sucursal,
         nombre,
-        usuario,       // 🔥 AGREGADO
+        usuario,
         fecha,
         creadoEn: serverTimestamp(),
         firma,
-
-        // SUBMODULOS
         inventario,
         caducidades,
         devoluciones,
@@ -134,7 +195,7 @@ window.guardar = async()=>{
         data
     );
 
-    // Limpiar memoria temporal
+    // LIMPIAR
     localStorage.removeItem("aud_captura");
     localStorage.removeItem("aud_caducidades");
     localStorage.removeItem("aud_devoluciones");
@@ -143,7 +204,6 @@ window.guardar = async()=>{
 
     window.location = "gracias.html";
 };
-
 </script>
 
 </body>

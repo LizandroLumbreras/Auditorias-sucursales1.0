@@ -4,82 +4,164 @@
 <meta charset="UTF-8">
 <title>Panel de Auditorías</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-body{
-    background:#f4f6fb;
-    margin:0; padding:20px;
-    font-family:'Poppins',sans-serif;
-}
-h2{
-    color:#00416A; text-align:center;
-}
-select{
-    width:100%; max-width:350px;
-    padding:12px; border-radius:10px;
-    border:1px solid #ccc;
-    display:block; margin:15px auto;
-}
-.card{
-    background:white;
-    padding:20px;
-    margin:20px auto;
-    max-width:700px;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,.15);
-}
-button{
-    background:#00416A; 
-    color:white;
-    border:none; 
-    padding:10px 16px;
-    border-radius:10px; 
-    cursor:pointer;
-    margin-top:15px;
-    font-size:15px;
+
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco:#ffffff;
 }
 
-/* Tarjeta especial */
-.card-fijo{
-    background:#00416A;
+/* FONDO */
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    min-height:100vh;
+    background: linear-gradient(135deg, var(--azul1), var(--azul2));
+    padding-bottom:50px;
+    position:relative;
+}
+
+/* ✔ MARCA DE AGUA */
+.watermark{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:650px;
+    opacity:0.08;
+    pointer-events:none;
+    z-index:0;
+}
+
+/* TÍTULO */
+h2{
+    text-align:center;
+    font-size:32px;
+    font-weight:600;
     color:white;
-    padding:20px;
+    margin-top:25px;
+    margin-bottom:20px;
+    text-shadow:0 3px 10px rgba(0,0,0,.25);
+}
+
+/* SELECT */
+select{
+    width:90%;
+    max-width:350px;
+    padding:14px;
+    border-radius:12px;
+    border:none;
+    outline:none;
+    font-size:16px;
+    background:rgba(255,255,255,0.90);
+    margin:0 auto;
+    display:block;
+    margin-bottom:20px;
+    box-shadow:0 3px 10px rgba(0,0,0,.25);
+}
+
+/* TARJETA GLASS */
+.card{
+    background:rgba(255,255,255,0.20);
+    backdrop-filter:blur(14px);
+    padding:22px;
     margin:20px auto;
     max-width:700px;
+    border-radius:16px;
+    box-shadow:0 6px 25px rgba(0,0,0,.25);
+    color:white;
+    animation: fadeUp .6s ease;
+}
+
+/* TITULOS INTERNOS */
+.card h3{
+    color:white;
+    margin-top:0;
+}
+
+/* BOTÓN GENERAL */
+button{
+    padding:12px 18px;
+    border:none;
     border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,.20);
+    background:white;
+    color:var(--azul1);
+    font-size:16px;
+    font-weight:600;
     cursor:pointer;
-    transition:.3s;
+    box-shadow:0 5px 12px rgba(0,0,0,.25);
+    transition:0.25s ease;
+}
+button:hover{
+    background:#ececec;
+    transform:translateY(-2px);
+}
+
+/* TARJETA ESPECIAL FIJA */
+.card-fijo{
+    background:rgba(255,255,255,0.22);
+    backdrop-filter: blur(14px);
+    color:white;
+    padding:20px;
+    margin:25px auto;
+    max-width:700px;
+    border-radius:14px;
+    cursor:pointer;
+    text-align:center;
+    box-shadow:0 6px 22px rgba(0,0,0,.25);
+    transition:.3s ease;
 }
 .card-fijo:hover{
-    background:#0c6cbd;
+    background:rgba(255,255,255,0.32);
+    transform:translateY(-3px);
 }
 
-/* Configuración de aleatorios */
+/* CONFIGURACIÓN ALEATORIOS */
 .card-config{
-    background:white;
-    padding:20px;
-    margin:20px auto;
+    background:rgba(255,255,255,0.20);
+    backdrop-filter:blur(14px);
+    padding:22px;
+    margin:25px auto;
     max-width:700px;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,.15);
+    border-radius:16px;
+    color:white;
+    box-shadow:0 6px 25px rgba(0,0,0,.25);
 }
-input{
+.card-config h3, .card-config h4{
+    color:white;
+}
+.card-config input{
     padding:10px;
-    width:120px;
+    width:140px;
     border-radius:8px;
-    border:1px solid #ccc;
-    font-size:16px;
+    border:none;
+    outline:none;
+    background:white;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.20);
 }
 .ok{
-    color:green;
     margin-top:8px;
+    color:#00ff99;
+    font-weight:600;
 }
+
+/* ANIMACIÓN */
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(20px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
 </style>
 </head>
 
 <body>
+
+<!-- ✔ MARCA DE AGUA -->
+<img src="logo_proveedora.webp" class="watermark">
 
 <h2>Panel de Auditorías</h2>
 
@@ -95,36 +177,36 @@ input{
 
 <div id="lista"></div>
 
-<!-- Tarjeta para Inventario Fijo -->
+<!-- TARJETA INVENTARIO FIJO -->
 <div class="card-fijo" onclick="location.href='admin_fijos.html'">
-    <h3 style="margin:0;">Inventario Fijo (Auditoría)</h3>
-    <p style="margin:0; opacity:0.9;">Agregar, eliminar o editar la lista de productos fijos</p>
+    <h3>Inventario Fijo (Auditoría)</h3>
+    <p style="opacity:.8;">Editar, agregar o eliminar productos fijos</p>
 </div>
 
-<!-- 🔥 NUEVA TARJETA: CONFIGURACIÓN DE INVENTARIO ALEATORIO -->
+<!-- CONFIGURACIÓN DE INVENTARIO ALEATORIO -->
 <div class="card-config">
-    <h3 style="margin-top:0; color:#00416A;">Configuración de Inventario Aleatorio</h3>
+    <h3>Configuración Inventario Aleatorio</h3>
 
-    <label><b>Cambiar inventario aleatorio cada:</b></label><br>
+    <label><b>Cambiar inventario aleatorio cada:</b></label><br><br>
     <input type="number" id="dias" min="1"> días
 
+    <br><br>
     <button onclick="guardarConfig()">Guardar</button>
 
-    <hr>
+    <hr style="border-color:rgba(255,255,255,0.4); margin:25px 0;">
 
-    <h4 style="color:#00416A;">Forzar nueva lista aleatoria</h4>
+    <h4>Forzar nueva lista aleatoria</h4>
     <button onclick="regenerarAhora()">Regenerar ahora</button>
 
     <div id="msg"></div>
 </div>
-
 
 <script type="module">
 import { db } from "./firebase.js";
 import { collection, getDocs, doc, getDoc, setDoc } 
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* Validación de sesión */
+/* Validación */
 if(localStorage.getItem("admin_login")!=="true"){
     window.location="admin_login.html";
 }
@@ -132,7 +214,6 @@ if(localStorage.getItem("admin_login")!=="true"){
 /* Normalizar sucursal */
 const normalizarSucursal = (txt) => {
     const t = txt.trim().toLowerCase();
-
     const mapa = {
         "allende1": "allende1",
         "allende2": "allende2",
@@ -141,13 +222,10 @@ const normalizarSucursal = (txt) => {
         "provileon": "PROVILEON",
         "rioverde": "rioverde"
     };
-
     return mapa[t] || null;
 };
 
-/* ---------------------------------------------------------
-   🔥 CARGAR AUDITORÍAS REGISTRADAS
------------------------------------------------------------- */
+/* Cargar auditorías */
 async function cargar(){
     const sel = document.getElementById("selSucursal").value;
     const suc = normalizarSucursal(sel);
@@ -167,7 +245,6 @@ async function cargar(){
                 <h3>${x.nombre}</h3>
                 <p><b>Fecha:</b> ${x.fecha}</p>
                 <p><b>Usuario:</b> ${x.usuario}</p>
-
                 <button onclick='ver("${suc}","${doc.id}")'>Ver detalles</button>
             </div>
         `;
@@ -175,18 +252,14 @@ async function cargar(){
 }
 window.cargar = cargar;
 
-/* ---------------------------------------------------------
-   🔥 VER DETALLE
------------------------------------------------------------- */
+/* Ver detalle */
 window.ver = (suc,id)=>{
     localStorage.setItem("admin_last_sucursal", suc);
     localStorage.setItem("admin_last_id", id);
     window.location = "admin_detalle.html";
 };
 
-/* ---------------------------------------------------------
-   🔥 LEER CONFIG ACTUAL DESDE FIRESTORE
------------------------------------------------------------- */
+/* Cargar config */
 async function cargarConfig() {
     const ref = doc(db, "config", "auditorias");
     const snap = await getDoc(ref);
@@ -199,9 +272,7 @@ async function cargarConfig() {
 }
 cargarConfig();
 
-/* ---------------------------------------------------------
-   🔥 GUARDAR CONFIGURACIÓN
------------------------------------------------------------- */
+/* Guardar configuración */
 window.guardarConfig = async () => {
     const dias = Number(document.getElementById("dias").value);
 
@@ -218,15 +289,13 @@ window.guardarConfig = async () => {
         `<p class="ok">Configuración guardada exitosamente</p>`;
 };
 
-/* ---------------------------------------------------------
-   🔥 REGENERAR LISTA ALEATORIA (SE BORRA LOCALSTORAGE)
------------------------------------------------------------- */
+/* Regenerar lista local */
 window.regenerarAhora = () => {
     localStorage.removeItem("aud_aleatorios");
     localStorage.removeItem("aud_aleatorios_fecha");
 
     document.getElementById("msg").innerHTML =
-        `<p class="ok">Se regenerará la lista en el próximo acceso</p>`;
+        `<p class="ok">Se regenerará la lista al próximo acceso</p>`;
 };
 
 </script>

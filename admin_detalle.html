@@ -86,7 +86,7 @@ h2{
 
 <script type="module">
 import { db } from "./firebase.js";
-import { doc, getDoc } 
+import { collection, getDocs, doc, getDoc } 
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* Validación Login Admin */
@@ -94,21 +94,39 @@ if(localStorage.getItem("admin_login")!=="true"){
     window.location="admin_login.html";
 }
 
-/* Recuperar datos desde el dashboard */
-const sucursal = localStorage.getItem("admin_last_sucursal");
+/* Recuperar ID que queremos buscar */
 const id = localStorage.getItem("admin_last_id");
 
+/* Buscar en TODAS las sucursales */
 async function cargarDetalle(){
-    const ref = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
-    const snap = await getDoc(ref);
 
-    if(!snap.exists()){
+    const sucursalesRef = collection(db, "auditorias");
+    const sucursalesSnap = await getDocs(sucursalesRef);
+
+    let encontrado = null;
+    let sucursalEncontrada = null;
+
+    for(const suc of sucursalesSnap.docs){
+        const nombreSuc = suc.id;
+
+        // Buscar dentro de auditorias_registros
+        const regRef = doc(db, `auditorias/${nombreSuc}/auditorias_registros/${id}`);
+        const regSnap = await getDoc(regRef);
+
+        if(regSnap.exists()){
+            encontrado = regSnap.data();
+            sucursalEncontrada = nombreSuc;
+            break;
+        }
+    }
+
+    if(!encontrado){
         document.getElementById("contenido").innerHTML =
-            "<p>No se encontró el registro.</p>";
+            "<p>No se encontró el registro en ninguna sucursal.</p>";
         return;
     }
 
-    const x = snap.data();
+    const x = encontrado;
 
     /* Datos generales */
     document.getElementById("contenido").innerHTML = `
@@ -116,32 +134,32 @@ async function cargarDetalle(){
             <h3>Datos Generales</h3>
             <p><b>Nombre:</b> ${x.nombre}</p>
             <p><b>Usuario:</b> ${x.usuario || "No registrado"}</p>
-            <p><b>Sucursal:</b> ${x.sucursal}</p>
+            <p><b>Sucursal:</b> ${sucursalEncontrada}</p>
             <p><b>Fecha:</b> ${x.fecha}</p>
         </div>
     `;
 
-    /* INVENTARIO BONITO */
+    /* Inventario */
     renderInventario(x.inventario || []);
 
-    /* CADUCIDADES */
+    /* Caducidades */
     document.getElementById("cadList").innerHTML =
         x.caducidades?.join("<br><br>") || "Sin información";
 
-    /* DEVOLUCIONES */
+    /* Devoluciones */
     document.getElementById("devList").innerHTML =
         x.devoluciones?.join("<br><br>") || "Sin información";
 
-    /* INCIDENCIAS */
+    /* Incidencias */
     document.getElementById("incList").innerHTML =
         x.incidencias || "Sin incidencias";
 
-    /* SUGERENCIAS */
+    /* Sugerencias */
     document.getElementById("sugList").innerHTML =
         x.sugerencias || "Sin sugerencias";
 }
 
-/* Renderizador visual del inventario */
+/* Render visual del inventario */
 function renderInventario(lista){
     const cont = document.getElementById("invList");
 

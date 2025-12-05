@@ -40,7 +40,7 @@ button{
     font-size:15px;
 }
 
-/* Tarjeta especial para Inventario Fijo */
+/* Tarjeta especial */
 .card-fijo{
     background:#00416A;
     color:white;
@@ -54,6 +54,27 @@ button{
 }
 .card-fijo:hover{
     background:#0c6cbd;
+}
+
+/* Configuración de aleatorios */
+.card-config{
+    background:white;
+    padding:20px;
+    margin:20px auto;
+    max-width:700px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
+input{
+    padding:10px;
+    width:120px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:16px;
+}
+.ok{
+    color:green;
+    margin-top:8px;
 }
 </style>
 </head>
@@ -74,15 +95,33 @@ button{
 
 <div id="lista"></div>
 
-<!-- 🔥 Nueva tarjeta para controlar la lista FIJA de auditoría -->
+<!-- Tarjeta para Inventario Fijo -->
 <div class="card-fijo" onclick="location.href='admin_fijos.html'">
     <h3 style="margin:0;">Inventario Fijo (Auditoría)</h3>
     <p style="margin:0; opacity:0.9;">Agregar, eliminar o editar la lista de productos fijos</p>
 </div>
 
+<!-- 🔥 NUEVA TARJETA: CONFIGURACIÓN DE INVENTARIO ALEATORIO -->
+<div class="card-config">
+    <h3 style="margin-top:0; color:#00416A;">Configuración de Inventario Aleatorio</h3>
+
+    <label><b>Cambiar inventario aleatorio cada:</b></label><br>
+    <input type="number" id="dias" min="1"> días
+
+    <button onclick="guardarConfig()">Guardar</button>
+
+    <hr>
+
+    <h4 style="color:#00416A;">Forzar nueva lista aleatoria</h4>
+    <button onclick="regenerarAhora()">Regenerar ahora</button>
+
+    <div id="msg"></div>
+</div>
+
+
 <script type="module">
 import { db } from "./firebase.js";
-import { collection, getDocs } 
+import { collection, getDocs, doc, getDoc, setDoc } 
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* Validación de sesión */
@@ -90,7 +129,7 @@ if(localStorage.getItem("admin_login")!=="true"){
     window.location="admin_login.html";
 }
 
-/* 🔥 Normalizar sucursal (acepta mayúsculas y minúsculas) */
+/* Normalizar sucursal */
 const normalizarSucursal = (txt) => {
     const t = txt.trim().toLowerCase();
 
@@ -106,9 +145,12 @@ const normalizarSucursal = (txt) => {
     return mapa[t] || null;
 };
 
+/* ---------------------------------------------------------
+   🔥 CARGAR AUDITORÍAS REGISTRADAS
+------------------------------------------------------------ */
 async function cargar(){
     const sel = document.getElementById("selSucursal").value;
-    const suc = normalizarSucursal(sel);   // 🔥 convertir automáticamente
+    const suc = normalizarSucursal(sel);
 
     const lista = document.getElementById("lista");
     lista.innerHTML = "";
@@ -131,14 +173,62 @@ async function cargar(){
         `;
     });
 }
-
 window.cargar = cargar;
 
+/* ---------------------------------------------------------
+   🔥 VER DETALLE
+------------------------------------------------------------ */
 window.ver = (suc,id)=>{
     localStorage.setItem("admin_last_sucursal", suc);
     localStorage.setItem("admin_last_id", id);
     window.location = "admin_detalle.html";
 };
+
+/* ---------------------------------------------------------
+   🔥 LEER CONFIG ACTUAL DESDE FIRESTORE
+------------------------------------------------------------ */
+async function cargarConfig() {
+    const ref = doc(db, "config", "auditorias");
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+        document.getElementById("dias").value = snap.data().renovarCadaDias || 7;
+    } else {
+        document.getElementById("dias").value = 7;
+    }
+}
+cargarConfig();
+
+/* ---------------------------------------------------------
+   🔥 GUARDAR CONFIGURACIÓN
+------------------------------------------------------------ */
+window.guardarConfig = async () => {
+    const dias = Number(document.getElementById("dias").value);
+
+    if (dias < 1) {
+        alert("Los días deben ser mínimo 1");
+        return;
+    }
+
+    await setDoc(doc(db, "config", "auditorias"), {
+        renovarCadaDias: dias
+    });
+
+    document.getElementById("msg").innerHTML = 
+        `<p class="ok">Configuración guardada exitosamente</p>`;
+};
+
+/* ---------------------------------------------------------
+   🔥 REGENERAR LISTA ALEATORIA (SE BORRA LOCALSTORAGE)
+------------------------------------------------------------ */
+window.regenerarAhora = () => {
+    localStorage.removeItem("aud_aleatorios");
+    localStorage.removeItem("aud_aleatorios_fecha");
+
+    document.getElementById("msg").innerHTML =
+        `<p class="ok">Se regenerará la lista en el próximo acceso</p>`;
+};
+
 </script>
 
 </body>

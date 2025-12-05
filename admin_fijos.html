@@ -7,57 +7,144 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
+
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco:#ffffff;
+}
+
+/* FONDO */
 body{
-  font-family:'Poppins',sans-serif;
-  background:#eef3ff;
-  padding:20px;
+    font-family:'Poppins',sans-serif;
+    margin:0;
+    padding:25px;
+    min-height:100vh;
+    background:linear-gradient(140deg, var(--azul1), var(--azul2));
+    position:relative;
+    color:white;
 }
-h2{ text-align:center; color:#00416A; }
 
+/* MARCA DE AGUA */
+.watermark{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:600px;
+    opacity:0.08;
+    pointer-events:none;
+    z-index:0;
+}
+
+/* TITULO */
+h2{
+    text-align:center;
+    margin-top:10px;
+    font-size:32px;
+    font-weight:600;
+    color:white;
+    text-shadow:0 4px 12px rgba(0,0,0,.35);
+}
+
+/* TARJETA */
 .card{
-  background:white; padding:20px; border-radius:12px;
-  box-shadow:0 4px 15px rgba(0,0,0,.1); max-width:650px; margin:auto;
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(14px);
+    padding:25px;
+    border-radius:18px;
+    margin:25px auto;
+    max-width:620px;
+    box-shadow:0 8px 28px rgba(0,0,0,.35);
+    z-index:5;
 }
 
+/* INPUTS */
 input{
-  width:100%; padding:12px; border-radius:8px;
-  border:1px solid #ccc; margin-top:10px;
+    width:100%;
+    padding:14px;
+    border-radius:12px;
+    border:none;
+    outline:none;
+    margin-top:12px;
+    font-size:15px;
+    background:rgba(255,255,255,0.92);
 }
 
+/* BOTONES */
 button{
-  padding:12px 20px; border:none; border-radius:8px;
-  background:#00416A; color:white; cursor:pointer;
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    margin-top:18px;
+    cursor:pointer;
+    font-size:17px;
+    font-weight:600;
+    background:white;
+    color:var(--azul1);
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
+    transition:.25s;
+}
+button:hover{
+    transform:translateY(-2px);
+    background:#e7e7e7;
 }
 
+/* LISTA DE ITEMS */
 .item{
-  padding:12px; background:#f7f7f7;
-  border-radius:8px; margin-top:10px;
-  display:flex; justify-content:space-between; align-items:center;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:rgba(255,255,255,0.18);
+    backdrop-filter:blur(12px);
+    padding:14px;
+    border-radius:12px;
+    margin-top:12px;
+    color:white;
+    box-shadow:0 6px 18px rgba(0,0,0,.30);
 }
+
+/* BOTÓN DE ELIMINAR */
 .remove{
-  background:#d9534f; border:none; color:white;
-  border-radius:6px; padding:6px 10px; cursor:pointer;
+    background:#d9534f;
+    padding:7px 12px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    color:white;
+    font-weight:600;
+    transition:.2s;
 }
+.remove:hover{
+    background:#b84542;
+    transform:scale(1.05);
+}
+
 </style>
 </head>
 
 <body>
 
-<h2>Administrar Lista Fija de Auditoría</h2>
+<img src="logo_proveedora.webp" class="watermark">
+
+<h2>Lista Fija – Auditoría</h2>
 
 <div class="card">
 
-  <h3>Agregar nuevo producto fijo</h3>
-  <input id="codigo" placeholder="Código">
-  <input id="concepto" placeholder="Descripción">
-  <button onclick="agregar()">Agregar</button>
+  <h3 style="margin-top:0; color:white;">Agregar nuevo producto</h3>
 
-  <hr>
+  <input id="codigo" placeholder="Código del producto">
+  <input id="concepto" placeholder="Descripción del producto">
 
-  <h3>Lista Actual</h3>
+  <button onclick="agregar()">Agregar a la lista</button>
+
+  <hr style="border:1px solid rgba(255,255,255,0.3); margin:20px 0;">
+
+  <h3 style="color:white;">Lista Actual</h3>
   <div id="lista"></div>
 
-  <button style="margin-top:20px; width:100%;" onclick="guardar()">Guardar Cambios</button>
+  <button onclick="guardar()">Guardar Cambios</button>
 
 </div>
 
@@ -69,6 +156,7 @@ import { doc, getDoc, setDoc }
 let lista = [];
 const divLista = document.getElementById("lista");
 
+/* CARGAR LISTA FIJA */
 async function cargar(){
     const ref = doc(db, "fijos_auditoria", "productos");
     const snap = await getDoc(ref);
@@ -80,26 +168,30 @@ async function cargar(){
     render();
 }
 
+/* MOSTRAR ITEMS */
 function render(){
     divLista.innerHTML = "";
     lista.forEach((p, i)=>{
+
         divLista.innerHTML += `
           <div class="item">
             <div>
               <b>${p.concepto}</b><br>
               <small>${p.codigo}</small>
             </div>
-            <button class="remove" onclick="eliminar(${i})">X</button>
+            <button class="remove" onclick="eliminar(${i})">Eliminar</button>
           </div>
         `;
     });
 }
 
+/* ELIMINAR */
 window.eliminar = function(i){
     lista.splice(i,1);
     render();
 };
 
+/* AGREGAR */
 window.agregar = function(){
     const codigo = document.getElementById("codigo").value.trim();
     const concepto = document.getElementById("concepto").value.trim();
@@ -116,6 +208,7 @@ window.agregar = function(){
     document.getElementById("concepto").value = "";
 };
 
+/* GUARDAR FIRESTORE */
 window.guardar = async function(){
     await setDoc(doc(db,"fijos_auditoria","productos"), { lista });
     alert("Guardado correctamente");

@@ -28,21 +28,16 @@ body{
     position:relative;
 }
 
-/* LOGO FLOTANTE */
-.logo-float{
+/* MARCA DE AGUA ESTÁTICA */
+.watermark{
     position:fixed;
-    width:180px;
-    opacity:0.18;
-    animation: flotando 25s linear infinite;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:480px;
+    opacity:0.10;
+    pointer-events:none;
     z-index:0;
-}
-
-@keyframes flotando {
-    0%   { transform:translate(-10vw, -10vh) rotate(0deg); }
-    25%  { transform:translate(80vw, 10vh) rotate(30deg); }
-    50%  { transform:translate(60vw, 70vh) rotate(0deg); }
-    75%  { transform:translate(5vw, 60vh) rotate(-25deg); }
-    100% { transform:translate(-10vw, -10vh) rotate(0deg); }
 }
 
 /* COPOS DE NIEVE */
@@ -53,7 +48,7 @@ body{
     font-size: 10px;
     user-select:none;
     opacity:0.8;
-    z-index: 0;
+    z-index:1;
     animation-name: snowFall;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
@@ -141,10 +136,10 @@ button:hover{
 
 <body>
 
-<!-- LOGO FLOTANTE -->
-<img src="logo_proveedora.webp" class="logo-float" alt="Logo La Proveedora">
+<!-- MARCA DE AGUA -->
+<img src="logo_proveedora.webp" class="watermark" alt="Logo">
 
-<!-- NIEVE GENERADA (30 copos) -->
+<!-- NIEVE (30 copos) -->
 <script>
 for(let i = 0; i < 30; i++){
     let snow = document.createElement("div");

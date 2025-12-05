@@ -29,7 +29,7 @@ h2{
     color:#00416A;
 }
 
-/* Tarjeta para cada producto */
+/* Tarjetas del inventario */
 #invList.grid{
     display:grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -47,7 +47,7 @@ h2{
     color:#555;
 }
 
-/* Otros módulos */
+/* Títulos */
 .section-title{
     font-size:18px;
     font-weight:600;
@@ -64,23 +64,23 @@ h2{
 
 <div id="contenido"></div>
 
-<!-- Contenedor del Inventario -->
+<!-- Inventario -->
 <h3 class="section-title">Inventario</h3>
 <div id="invList" class="grid"></div>
 
-<!-- Contenedor de Caducidades -->
+<!-- Caducidades -->
 <h3 class="section-title">Caducidades</h3>
 <div id="cadList" class="card"></div>
 
-<!-- Contenedor de Devoluciones -->
+<!-- Devoluciones -->
 <h3 class="section-title">Devoluciones</h3>
 <div id="devList" class="card"></div>
 
-<!-- Contenedor de Incidencias -->
+<!-- Incidencias -->
 <h3 class="section-title">Incidencias</h3>
 <div id="incList" class="card"></div>
 
-<!-- Contenedor de Sugerencias -->
+<!-- Sugerencias -->
 <h3 class="section-title">Sugerencias</h3>
 <div id="sugList" class="card"></div>
 
@@ -89,15 +89,15 @@ import { db } from "./firebase.js";
 import { collection, getDocs, doc, getDoc } 
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* Validación Login Admin */
+/* Validación login */
 if(localStorage.getItem("admin_login")!=="true"){
     window.location="admin_login.html";
 }
 
-/* Recuperar ID que queremos buscar */
+/* ID del registro */
 const id = localStorage.getItem("admin_last_id");
 
-/* Buscar en TODAS las sucursales */
+/* Buscar en TODAS las sucursales automáticamente */
 async function cargarDetalle(){
 
     const sucursalesRef = collection(db, "auditorias");
@@ -107,9 +107,9 @@ async function cargarDetalle(){
     let sucursalEncontrada = null;
 
     for(const suc of sucursalesSnap.docs){
-        const nombreSuc = suc.id;
 
-        // Buscar dentro de auditorias_registros
+        const nombreSuc = suc.id; // Puede ser: ALLENDE 1, PROVILEON, allende1, etc.
+
         const regRef = doc(db, `auditorias/${nombreSuc}/auditorias_registros/${id}`);
         const regSnap = await getDoc(regRef);
 
@@ -128,7 +128,7 @@ async function cargarDetalle(){
 
     const x = encontrado;
 
-    /* Datos generales */
+    /* Mostrar datos generales */
     document.getElementById("contenido").innerHTML = `
         <div class="card">
             <h3>Datos Generales</h3>
@@ -159,7 +159,7 @@ async function cargarDetalle(){
         x.sugerencias || "Sin sugerencias";
 }
 
-/* Render visual del inventario */
+/* Renderizador del inventario */
 function renderInventario(lista){
     const cont = document.getElementById("invList");
 

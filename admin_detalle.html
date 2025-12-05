@@ -8,57 +8,108 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
+
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco:#ffffff;
+}
+
+/* FONDO */
 body{
-    background:#f4f6fb;
-    margin:0; padding:20px;
+    margin:0;
     font-family:'Poppins',sans-serif;
-}
-h2{
-    color:#00416A;
-    margin-bottom:20px;
-}
-.card{
-    background:white;
+    min-height:100vh;
+    background: linear-gradient(140deg, var(--azul1), var(--azul2));
     padding:20px;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,.15);
-    margin-bottom:25px;
+    padding-bottom:60px;
+    position:relative;
+    color:white;
 }
+
+/* MARCA DE AGUA */
+.watermark{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:600px;
+    opacity:0.07;
+    pointer-events:none;
+    z-index:0;
+}
+
+/* TITULO */
+h2{
+    text-align:center;
+    font-size:32px;
+    font-weight:600;
+    margin-top:15px;
+    margin-bottom:25px;
+    color:white;
+    text-shadow:0 4px 10px rgba(0,0,0,.35);
+}
+
+/* TARJETAS */
+.card{
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(14px);
+    padding:22px;
+    border-radius:16px;
+    margin:20px auto;
+    max-width:900px;
+    box-shadow:0 8px 28px rgba(0,0,0,.35);
+    animation:fadeUp .6s ease;
+    color:white;
+}
+
 .card h3{
     margin-top:0;
-    color:#00416A;
+    font-size:22px;
+    color:white;
 }
 
-/* Tarjetas del inventario */
+/* TITULOS SECCION */
+.section-title{
+    font-size:24px;
+    font-weight:600;
+    margin-top:40px;
+    text-shadow:0 3px 10px rgba(0,0,0,.30);
+}
+
+/* LISTA INVENTARIO */
 #invList.grid{
     display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap:15px;
-    margin-top:15px;
-}
-.card-item{
-    background:white;
-    padding:15px;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,.15);
-    font-size:14px;
-}
-.card-item small{
-    color:#555;
+    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+    gap:18px;
+    margin-top:18px;
 }
 
-/* Títulos */
-.section-title{
-    font-size:18px;
-    font-weight:600;
-    color:#00416A;
-    margin-top:30px;
+.card-item{
+    background:rgba(255,255,255,0.18);
+    backdrop-filter:blur(12px);
+    padding:16px;
+    border-radius:14px;
+    box-shadow:0 5px 18px rgba(0,0,0,.30);
+    font-size:15px;
+    color:white;
+    animation:fadeUp .6s ease;
 }
+
+/* ANIMACIÓN */
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(20px); }
+    to{ opacity:1; transform:translateY(0px); }
+}
+
 </style>
 
 </head>
 
 <body>
+
+<!-- Marca de agua -->
+<img src="logo_proveedora.webp" class="watermark">
 
 <h2>Detalle de Auditoría</h2>
 
@@ -94,24 +145,19 @@ if(localStorage.getItem("admin_login")!=="true"){
     window.location="admin_login.html";
 }
 
-/* ID del registro */
 const id = localStorage.getItem("admin_last_id");
 
-/* Buscar en TODAS las sucursales automáticamente */
+/* Buscar en todas las sucursales */
 async function cargarDetalle(){
 
-    const sucursalesRef = collection(db, "auditorias");
-    const sucursalesSnap = await getDocs(sucursalesRef);
-
+    const sucursalesSnap = await getDocs(collection(db,"auditorias"));
     let encontrado = null;
     let sucursalEncontrada = null;
 
     for(const suc of sucursalesSnap.docs){
+        const nombreSuc = suc.id;
 
-        const nombreSuc = suc.id; // Puede ser: ALLENDE 1, PROVILEON, allende1, etc.
-
-        const regRef = doc(db, `auditorias/${nombreSuc}/auditorias_registros/${id}`);
-        const regSnap = await getDoc(regRef);
+        const regSnap = await getDoc(doc(db,`auditorias/${nombreSuc}/auditorias_registros/${id}`));
 
         if(regSnap.exists()){
             encontrado = regSnap.data();
@@ -122,13 +168,13 @@ async function cargarDetalle(){
 
     if(!encontrado){
         document.getElementById("contenido").innerHTML =
-            "<p>No se encontró el registro en ninguna sucursal.</p>";
+            "<div class='card'>No se encontró el registro.</div>";
         return;
     }
 
     const x = encontrado;
 
-    /* Mostrar datos generales */
+    /* Datos generales */
     document.getElementById("contenido").innerHTML = `
         <div class="card">
             <h3>Datos Generales</h3>
@@ -144,11 +190,20 @@ async function cargarDetalle(){
 
     /* Caducidades */
     document.getElementById("cadList").innerHTML =
-        x.caducidades?.join("<br><br>") || "Sin información";
+        x.caducidades
+        ? Object.values(x.caducidades).join("<br><br>")
+        : "Sin información";
 
     /* Devoluciones */
     document.getElementById("devList").innerHTML =
-        x.devoluciones?.join("<br><br>") || "Sin información";
+        x.devoluciones
+        ? x.devoluciones.map(d=>`
+            <b>${d.descripcion}</b><br>
+            Código: ${d.codigo}<br>
+            Cantidad: ${d.cantidad}<br>
+            Motivo: ${d.motivo}<br><br>
+        `).join("")
+        : "Sin devoluciones";
 
     /* Incidencias */
     document.getElementById("incList").innerHTML =
@@ -159,17 +214,16 @@ async function cargarDetalle(){
         x.sugerencias || "Sin sugerencias";
 }
 
-/* Renderizador del inventario */
+/* Render inventario */
 function renderInventario(lista){
-    const cont = document.getElementById("invList");
-
-    cont.innerHTML = lista.map(p => `
-        <div class="card-item">
-            <b>${p.concepto}</b><br>
-            <small><b>Código:</b> ${p.codigo}</small><br>
-            <small><b>Cantidad:</b> ${p.cantidad}</small>
-        </div>
-    `).join("");
+    document.getElementById("invList").innerHTML =
+        lista.map(p => `
+            <div class="card-item">
+                <b>${p.concepto}</b><br>
+                <small><b>Código:</b> ${p.codigo}</small><br>
+                <small><b>Cantidad:</b> ${p.cantidad}</small>
+            </div>
+        `).join("");
 }
 
 cargarDetalle();

@@ -57,13 +57,13 @@
 <script type="module">
 
 import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
-import { collection, getDocs }
+import { collection, getDocs, doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const lista = document.getElementById("lista");
 
 /* ---------------------------------------------------------
-   ✅ LISTA FIJA DE PRODUCTOS DE CIGARROS + NUEZ + CELOFÁN
+   LISTA FIJA MANUAL DE PRODUCTOS
 ----------------------------------------------------------*/
 const FIJOS_MANUALES = [
   { codigo: "75035259", concepto: "MARLBORO BLANCO 100" },
@@ -98,21 +98,71 @@ const FIJOS_MANUALES = [
   { codigo: "40", concepto: "CHILE JAPONES" }
 ];
 
+/* ============================================================
+   🔥 NUEVO: CARGA CONFIGURACIÓN DESDE FIRESTORE
+   Documento: config/auditorias
+   Campo: renovarCadaDias  (ejemplo 7)
+============================================================ */
+async function obtenerConfig() {
+    const ref = doc(db, "config", "auditorias");
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+        return { renovarCadaDias: 7 };   // por defecto
+    }
+    return snap.data();
+}
+
+/* ============================================================
+   🔥 NUEVO: VERIFICAR SI DEBE GENERARSE NUEVA LISTA
+============================================================ */
+function debeRenovar(fechaGuardada, dias) {
+    if (!fechaGuardada) return true;
+
+    const ultima = new Date(fechaGuardada);
+    const ahora = new Date();
+
+    const diff = (ahora - ultima) / (1000 * 60 * 60 * 24);
+    return diff >= dias;
+}
+
+/* ============================================================
+   🔥 PRINCIPAL
+============================================================ */
 async function cargarProductos() {
-    const snap = await getDocs(collection(db, "productos"));
 
-    let activos = [];
-    snap.forEach(d => {
-        const x = d.data();
-        if (x.activo === true) {
-            activos.push({ id: d.id, ...x });
-        }
-    });
+    const config = await obtenerConfig();
 
-    // 🔥 Aleatorios de Firestore (20)
-    const aleatorios = activos.sort(() => 0.5 - Math.random()).slice(0, 20);
+    const guardado = JSON.parse(localStorage.getItem("aud_aleatorios"));
+    const fechaGuardada = localStorage.getItem("aud_aleatorios_fecha");
 
-    // 🔥 Mezclar los FIJOS + ALEATORIOS
+    let aleatorios;
+
+    /* ---------------------------------------------------------
+       🔥 Si NO existe guardado o YA PASÓ EL TIEMPO → regenerar
+    ------------------------------------------------------------ */
+    if (!guardado || debeRenovar(fechaGuardada, config.renovarCadaDias)) {
+
+        const snap = await getDocs(collection(db, "productos"));
+        let activos = [];
+
+        snap.forEach(d => {
+            const x = d.data();
+            if (x.activo === true) {
+                activos.push({ id: d.id, ...x });
+            }
+        });
+
+        aleatorios = activos.sort(() => 0.5 - Math.random()).slice(0, 20);
+
+        // Guardar la nueva lista
+        localStorage.setItem("aud_aleatorios", JSON.stringify(aleatorios));
+        localStorage.setItem("aud_aleatorios_fecha", new Date().toISOString());
+
+    } else {
+        aleatorios = guardado; // mantener la misma lista
+    }
+
+    // Mezcla final
     const finalList = [
         ...FIJOS_MANUALES.map((p, index) => ({
             id: `fijo_${index}`,
@@ -124,9 +174,14 @@ async function cargarProductos() {
 
     localStorage.setItem("aud_productos", JSON.stringify(finalList));
 
-    /* ---------------------------------------------------------
-       ⬇️ MOSTRAR FIJOS
-    ----------------------------------------------------------*/
+    pintarPantalla(aleatorios);
+}
+
+/* ============================================================
+   🔥 DIBUJAR EN PANTALLA
+============================================================ */
+function pintarPantalla(aleatorios) {
+
     lista.innerHTML += `
         <h3 style="color:#00416A; margin-top:20px;">Inventario Fijo – Productos Esenciales</h3>
     `;
@@ -141,9 +196,6 @@ async function cargarProductos() {
         `;
     });
 
-    /* ---------------------------------------------------------
-       ⬇️ MOSTRAR ALEATORIOS
-    ----------------------------------------------------------*/
     lista.innerHTML += `
         <h3 style="color:#00416A; margin-top:40px;">Inventario Aleatorio</h3>
     `;

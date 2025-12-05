@@ -8,60 +8,118 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
- body{
+
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco:#ffffff;
+}
+
+/* FONDO GENERAL */
+body{
+   margin:0;
    font-family:'Poppins',sans-serif;
-   background:#f4f6fb;
-   padding:25px;
- }
+   min-height:100vh;
+   background: linear-gradient(135deg, var(--azul1), var(--azul2));
+   padding-top:40px;
+   position:relative;
+   overflow-x:hidden;
+}
 
- h2{
+/* ✔ MARCA DE AGUA */
+.watermark{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:650px;
+    opacity:0.10;
+    pointer-events:none;
+    z-index:0;
+}
+
+/* TÍTULO */
+h2{
    text-align:center;
-   color:#00416A;
+   color:white;
    margin-bottom:25px;
- }
+   font-size:30px;
+   font-weight:600;
+}
 
- .card{
-   background:white;
-   padding:25px;
-   border-radius:16px;
+/* TARJETA PRINCIPAL */
+.card{
+   background:rgba(255,255,255,0.18);
+   backdrop-filter:blur(14px);
+   padding:30px;
+   border-radius:18px;
    max-width:650px;
    margin:auto;
-   box-shadow:0 4px 16px rgba(0,0,0,.15);
- }
+   box-shadow:0 8px 35px rgba(0,0,0,.25);
+   color:white;
+   position:relative;
+   z-index:5;
+   animation: fadeUp .7s ease;
+}
 
- textarea{
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(25px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+/* TEXTAREA */
+textarea{
    width:100%;
    padding:14px;
    border-radius:12px;
-   border:1px solid #bbb;
+   border:none;
+   outline:none;
    resize:none;
    height:180px;
-   margin-top:10px;
    font-size:16px;
- }
+   background:rgba(255,255,255,0.90);
+   color:#333;
+   box-shadow:inset 0 2px 6px rgba(0,0,0,.15);
+   margin-top:15px;
+}
 
- button{
+/* BOTÓN */
+button{
    width:100%;
-   padding:15px;
-   margin-top:20px;
-   background:#00416A;
-   color:white;
+   padding:16px;
+   margin-top:25px;
+   background:white;
+   color:var(--azul1);
    border:none;
    border-radius:12px;
    font-size:18px;
+   font-weight:600;
    cursor:pointer;
- }
+   box-shadow:0 5px 12px rgba(0,0,0,.25);
+   transition:.25s ease;
+}
+
+button:hover{
+    background:#ececec;
+    transform:translateY(-2px);
+}
+
 </style>
 </head>
 
 <body>
 
+<!-- ✔ MARCA DE AGUA -->
+<img src="logo_proveedora.webp" class="watermark">
+
 <h2>Comentarios y Sugerencias</h2>
 
 <div class="card">
 
-  <p>Puedes escribir aquí cualquier comentario final, sugerencia o necesidad detectada en la sucursal.  
-  Este campo es opcional, pero útil para mejorar operaciones.</p>
+  <p style="font-size:17px; line-height:1.5;">
+    Puedes escribir aquí cualquier comentario final, Mantenimiento, sugerencia o necesidad detectada en la sucursal.  
+    Este campo es opcional, pero muy útil para mejorar procesos.
+  </p>
 
   <textarea id="sugerencias" placeholder="Escribe tus sugerencias aquí... (opcional)"></textarea>
 

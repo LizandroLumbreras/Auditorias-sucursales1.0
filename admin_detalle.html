@@ -147,32 +147,26 @@ if(localStorage.getItem("admin_login")!=="true"){
 
 const id = localStorage.getItem("admin_last_id");
 
-/* Buscar en todas las sucursales */
+/* Cargar detalles únicamente desde la sucursal correcta */
 async function cargarDetalle(){
 
-    const sucursalesSnap = await getDocs(collection(db,"auditorias"));
-    let encontrado = null;
-    let sucursalEncontrada = null;
-
-    for(const suc of sucursalesSnap.docs){
-        const nombreSuc = suc.id;
-
-        const regSnap = await getDoc(doc(db,`auditorias/${nombreSuc}/auditorias_registros/${id}`));
-
-        if(regSnap.exists()){
-            encontrado = regSnap.data();
-            sucursalEncontrada = nombreSuc;
-            break;
-        }
+    const sucursal = localStorage.getItem("admin_last_sucursal");  // ✔ sucursal exacta
+    if(!sucursal){
+        document.getElementById("contenido").innerHTML =
+            "<div class='card'>No se encontró la sucursal.</div>";
+        return;
     }
 
-    if(!encontrado){
+    const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
+    const regSnap = await getDoc(regRef);
+
+    if(!regSnap.exists()){
         document.getElementById("contenido").innerHTML =
             "<div class='card'>No se encontró el registro.</div>";
         return;
     }
 
-    const x = encontrado;
+    const x = regSnap.data();
 
     /* Datos generales */
     document.getElementById("contenido").innerHTML = `

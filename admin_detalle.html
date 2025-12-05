@@ -135,9 +135,11 @@ h2{
 <h3 class="section-title">Sugerencias</h3>
 <div id="sugList" class="card"></div>
 
+
+
 <script type="module">
 import { db } from "./firebase.js";
-import { collection, getDocs, doc, getDoc } 
+import { doc, getDoc } 
     from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* Validación login */
@@ -146,7 +148,7 @@ if(localStorage.getItem("admin_login")!=="true"){
 }
 
 const id = localStorage.getItem("admin_last_id");
-const sucursal = localStorage.getItem("admin_last_sucursal"); // ✔ sucursal correcta
+const sucursal = localStorage.getItem("admin_last_sucursal"); // ✔ SUCURSAL REAL
 
 async function cargarDetalle(){
 
@@ -155,9 +157,6 @@ async function cargarDetalle(){
             "<div class='card'>No se encontró la sucursal.</div>";
         return;
     }
-
-    console.log("Sucursal:", sucursal);
-    console.log("ID:", id);
 
     const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
     const regSnap = await getDoc(regRef);
@@ -170,7 +169,7 @@ async function cargarDetalle(){
 
     const x = regSnap.data();
 
-    /* Datos generales */
+    /* ✔ Datos generales corregidos */
     document.getElementById("contenido").innerHTML = `
         <div class="card">
             <h3>Datos Generales</h3>
@@ -181,31 +180,31 @@ async function cargarDetalle(){
         </div>
     `;
 
-    /* Inventario */
+    /* ✔ Inventario */
     renderInventario(x.inventario || []);
 
-    /* Caducidades */
+    /* ✔ Caducidades */
     document.getElementById("cadList").innerHTML =
         x.caducidades
-        ? Object.values(x.caducidades).join("<br><br>")
-        : "Sin información";
+            ? Object.values(x.caducidades).join("<br><br>")
+            : "Sin información";
 
-    /* Devoluciones */
+    /* ✔ Devoluciones */
     document.getElementById("devList").innerHTML =
-        x.devoluciones
-        ? x.devoluciones.map(d=>`
-            <b>${d.descripcion}</b><br>
-            Código: ${d.codigo}<br>
-            Cantidad: ${d.cantidad}<br>
-            Motivo: ${d.motivo}<br><br>
-        `).join("")
-        : "Sin devoluciones";
+        x.devoluciones && x.devoluciones.length > 0
+            ? x.devoluciones.map(d=>`
+                <b>${d.descripcion}</b><br>
+                Código: ${d.codigo}<br>
+                Cantidad: ${d.cantidad}<br>
+                Motivo: ${d.motivo}<br><br>
+            `).join("")
+            : "Sin devoluciones";
 
-    /* Incidencias */
+    /* ✔ Incidencias */
     document.getElementById("incList").innerHTML =
         x.incidencias || "Sin incidencias";
 
-    /* Sugerencias */
+    /* ✔ Sugerencias */
     document.getElementById("sugList").innerHTML =
         x.sugerencias || "Sin sugerencias";
 }

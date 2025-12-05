@@ -215,12 +215,12 @@ if(localStorage.getItem("admin_login")!=="true"){
 const normalizarSucursal = (txt) => {
     const t = txt.trim().toLowerCase();
     const mapa = {
-        "allende1": "ALLENDE1",
-        "allende2": "ALLENDE2",
-        "central": "CENTRAL",
-        "montemorelos": "MONTEMORELOS",
-        "provileon": "PROVILEON",
-        "rioverde": "RIOVERDE"
+        "ALLENDE1": "ALLENDE1",
+        "ALLENDE2": "ALLENDE2",
+        "CENTRAL": "CENTRAL",
+        "MONTEMORELOS": "MONTEMORELOS",
+        "PROVILEON": "PROVILEON",
+        "RIOVERDE": "RIOVERDE"
     };
     return mapa[t] || null;
 };

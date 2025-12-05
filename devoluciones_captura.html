@@ -8,60 +8,128 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
- body{
-   font-family:'Poppins',sans-serif;
-   background:#f4f6fb;
-   padding:20px;
- }
- h2{
-   text-align:center;
-   color:#00416A;
-   margin-bottom:20px;
- }
 
- .card{
-    background:white;
-    padding:18px;
-    border-radius:14px;
-    box-shadow:0 4px 14px rgba(0,0,0,.15);
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco:#ffffff;
+}
+
+/* FONDO */
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    min-height:100vh;
+    background: linear-gradient(135deg, var(--azul1), var(--azul2));
+    position:relative;
+    overflow-x:hidden;
+    padding-top:30px;
+}
+
+/* ✔ MARCA DE AGUA */
+.watermark{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:650px;
+    opacity:0.10;
+    z-index:0;
+    pointer-events:none;
+}
+
+/* TARJETA PRINCIPAL */
+.card{
+   width:90%;
+   max-width:450px;
+   background:rgba(255,255,255,0.18);
+   backdrop-filter: blur(14px);
+   padding:25px;
+   margin:auto;
+   border-radius:18px;
+   box-shadow:0 8px 35px rgba(0,0,0,.25);
+   animation: fadeUp .7s ease;
+   z-index:5;
+   position:relative;
+}
+
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(25px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+/* TITULO */
+h2{
+    text-align:center;
+    font-size:28px;
+    color:white;
+    font-weight:600;
     margin-bottom:20px;
- }
+}
 
- input, textarea{
+/* INPUTS Y TEXTAREA */
+input, textarea{
    width:100%;
-   padding:12px;
-   border-radius:10px;
-   border:1px solid #bbb;
-   margin-top:10px;
- }
+   padding:14px;
+   border-radius:12px;
+   border:none;
+   outline:none;
+   margin-top:12px;
+   font-size:15px;
+   background:rgba(255,255,255,0.90);
+   color:#333;
+   box-shadow:inset 0 2px 6px rgba(0,0,0,.15);
+   resize:none;
+}
 
- button{
+/* BOTÓN */
+button{
    width:100%;
-   padding:15px;
-   background:#00416A;
-   color:white;
+   padding:16px;
+   background:white;
+   color:var(--azul1);
    border:none;
    border-radius:12px;
-   font-size:17px;
-   margin-top:15px;
+   font-size:18px;
+   font-weight:600;
    cursor:pointer;
- }
+   margin-top:18px;
+   box-shadow:0 5px 12px rgba(0,0,0,.25);
+   transition:.25s ease;
+}
+button:hover{
+    background:#ececec;
+    transform:translateY(-2px);
+}
 
- .lista-item{
-    background:white;
-    border-radius:12px;
-    padding:12px;
-    margin-bottom:12px;
-    box-shadow:0 3px 10px rgba(0,0,0,.15);
- }
- .eliminar{
+/* LISTA DE DEVOLUCIONES */
+.lista-item{
+    background:rgba(255,255,255,0.90);
+    backdrop-filter:blur(6px);
+    border-radius:14px;
+    padding:15px;
+    margin-bottom:14px;
+    box-shadow:0 4px 16px rgba(0,0,0,.25);
+}
+
+.eliminar{
     background:#cc0000;
-    margin-top:10px;
- }
+    color:white;
+    font-weight:600;
+    box-shadow:0 3px 10px rgba(0,0,0,.3);
+}
+.eliminar:hover{
+    background:#e00000;
+    transform:translateY(-2px);
+}
+
 </style>
 </head>
 
 <body>
+
+<!-- ✔ MARCA DE AGUA -->
+<img src="logo_proveedora.webp" class="watermark">
 
 <h2>Captura de Devoluciones</h2>
 
@@ -82,26 +150,30 @@
     <button onclick="agregar()">Agregar devolución</button>
 </div>
 
-<h2 style="margin-top:30px;">Devoluciones agregadas</h2>
+<h2 style="margin-top:35px;">Devoluciones agregadas</h2>
 
-<div id="lista"></div>
+<div id="lista" style="width:90%; max-width:450px; margin:auto;"></div>
 
-<button onclick="continuar()">Continuar</button>
+<button onclick="continuar()" style="max-width:450px; margin:30px auto; display:block;">Continuar</button>
+
 
 <script type="module">
+
+/* FIREBASE */
 import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let productos = [];
 let devoluciones = [];
 
-// cargar catálogo
+/* CARGAR CATÁLOGO */
 async function cargarProductos(){
     const snap = await getDocs(collection(db, "productos"));
     snap.forEach(doc => productos.push({ id: doc.id, ...doc.data() }));
 }
 cargarProductos();
 
+/* AUTORELLENO AL ESCRIBIR CÓDIGO */
 document.getElementById("codigo").addEventListener("change", ()=>{
     const codigo = document.getElementById("codigo").value.trim();
 
@@ -118,6 +190,7 @@ document.getElementById("codigo").addEventListener("change", ()=>{
     }
 });
 
+/* AGREGAR DEVOLUCIÓN */
 window.agregar = function(){
 
     const codigo = document.getElementById("codigo").value.trim();
@@ -139,6 +212,7 @@ window.agregar = function(){
     document.getElementById("motivo").value = "";
 }
 
+/* MOSTRAR EN LISTA */
 function render(){
     const lista = document.getElementById("lista");
     lista.innerHTML = "";
@@ -151,18 +225,19 @@ function render(){
                 Cantidad: ${d.cantidad}<br>
                 Motivo: ${d.motivo}<br>
                 <button class="eliminar" onclick="eliminar(${i})">Eliminar</button>
-            </div>
-        `;
+            </div>`;
     });
 
     localStorage.setItem("aud_devoluciones", JSON.stringify(devoluciones));
 }
 
+/* ELIMINAR */
 window.eliminar = function(i){
     devoluciones.splice(i,1);
     render();
 }
 
+/* CONTINUAR */
 window.continuar = function(){
     if(devoluciones.length == 0){
         if(!confirm("No agregaste devoluciones. ¿Deseas continuar?")){
@@ -172,6 +247,7 @@ window.continuar = function(){
     localStorage.setItem("aud_devoluciones", JSON.stringify(devoluciones));
     window.location = "incidencias.html";
 }
+
 </script>
 
 </body>

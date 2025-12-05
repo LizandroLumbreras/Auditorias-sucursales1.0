@@ -8,51 +8,138 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
- body{
-   font-family:'Poppins',sans-serif;
-   background:#f4f6fb;
-   padding:20px;
- }
- h2{ text-align:center; color:#00416A; }
 
- .item{
-   background:white;
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco:#ffffff;
+}
+
+/* FONDO GENERAL */
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    min-height:100vh;
+    padding:0;
+    background: linear-gradient(135deg, var(--azul1), var(--azul2));
+    position:relative;
+    overflow-x:hidden;
+}
+
+/* ✔ NUEVA MARCA DE AGUA ESTÁTICA */
+.watermark{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:600px;
+    opacity:0.10;         /* Muy tenue */
+    z-index:0;
+    pointer-events:none;  /* No estorba clics */
+}
+
+/* TARJETA PRINCIPAL */
+.contenedor{
+    width:95%;
+    max-width:900px;
+    margin:40px auto;
+    background:rgba(255,255,255,0.18);
+    backdrop-filter: blur(14px);
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 8px 35px rgba(0,0,0,.25);
+    z-index:5;
+    position:relative;
+    animation: fadeUp .7s ease;
+}
+
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(25px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+h2{
+    text-align:center;
+    font-size:30px;
+    color:white;
+    font-weight:600;
+    margin-bottom:25px;
+    letter-spacing:1px;
+}
+
+/* TARJETAS DE PRODUCTO */
+.item{
+   background:rgba(255,255,255,0.90);
+   backdrop-filter:blur(8px);
+   color:#222;
    padding:15px;
-   border-radius:12px;
-   margin-bottom:12px;
-   box-shadow:0 4px 12px rgba(0,0,0,.1);
+   border-radius:14px;
+   box-shadow:0 4px 16px rgba(0,0,0,.25);
+   margin-bottom:15px;
    transition:.3s;
- }
- .item:hover{ transform:scale(1.01); }
+}
+.item:hover{
+    transform:scale(1.02);
+}
 
- input{
+/* INPUT CANTIDADES */
+input{
    width:100%;
-   padding:12px;
-   border-radius:8px;
-   border:1px solid #ccc;
+   padding:14px;
+   border-radius:12px;
+   border:none;
+   outline:none;
+   font-size:15px;
    margin-top:10px;
- }
+   background:rgba(255,255,255,0.85);
+   color:#333;
+   box-shadow:inset 0 2px 6px rgba(0,0,0,.15);
+}
 
- button{
+/* BOTÓN FINALIZAR */
+button{
    width:100%;
-   padding:15px;
-   background:#00416A;
-   color:white;
-   font-size:17px;
+   padding:16px;
+   background:white;
+   color:var(--azul1);
    border:none;
    border-radius:12px;
+   font-size:18px;
+   font-weight:600;
+   cursor:pointer;
    margin-top:25px;
- }
+   box-shadow:0 5px 12px rgba(0,0,0,.25);
+   transition:.25s ease;
+}
+button:hover{
+    background:#e8e8e8;
+    transform:translateY(-2px);
+}
+
+h3{
+    color:white;
+    margin-top:40px;
+    margin-bottom:10px;
+    font-size:22px;
+}
+
 </style>
 </head>
 
 <body>
+
+<!-- ✔ MARCA DE AGUA EN LUGAR DEL LOGO ANIMADO -->
+<img src="logo_proveedora.webp" class="watermark">
+
+<div class="contenedor">
 
 <h2>Captura de Auditoría</h2>
 
 <div id="lista"></div>
 
 <button onclick="finalizar()">Finalizar</button>
+
+</div> <!-- FIN CONTENEDOR -->
 
 <script type="module">
 
@@ -62,9 +149,7 @@ import { collection, getDocs, doc, getDoc }
 
 const lista = document.getElementById("lista");
 
-/* ---------------------------------------------------------
-   LISTA FIJA MANUAL DE PRODUCTOS
-----------------------------------------------------------*/
+/* ---------- LISTA FIJA ---------- */
 const FIJOS_MANUALES = [
   { codigo: "75035259", concepto: "MARLBORO BLANCO 100" },
   { codigo: "75068738", concepto: "MARLBORO BLANCO DURO" },
@@ -98,118 +183,86 @@ const FIJOS_MANUALES = [
   { codigo: "40", concepto: "CHILE JAPONES" }
 ];
 
-/* ============================================================
-   🔥 CARGAR CONFIG DESDE FIRESTORE
-============================================================ */
-async function obtenerConfig() {
-    const ref = doc(db, "config", "auditorias");
+/* ---------- CONFIG FIRESTORE ---------- */
+async function obtenerConfig(){
+    const ref = doc(db,"config","auditorias");
     const snap = await getDoc(ref);
-
-    if (!snap.exists()) {
-        return { renovarCadaDias: 7 };   // default
-    }
-    return snap.data();
+    return snap.exists()? snap.data() : { renovarCadaDias:7 };
 }
 
-/* ============================================================
-   🔥 VERIFICAR SI TOCA RENOVAR ALEATORIOS
-============================================================ */
-function debeRenovar(fechaGuardada, dias) {
-    if (!fechaGuardada) return true;
-
-    const ultima = new Date(fechaGuardada);
-    const ahora = new Date();
-
-    const diff = (ahora - ultima) / (1000 * 60 * 60 * 24);
-    return diff >= dias;
+function debeRenovar(fecha,dias){
+    if(!fecha) return true;
+    const ultima = new Date(fecha);
+    const hoy    = new Date();
+    return ((hoy - ultima) / (1000*60*60*24)) >= dias;
 }
 
-/* ============================================================
-   🔥 FUNCIÓN PRINCIPAL
-============================================================ */
-async function cargarProductos() {
+/* ---------- FUNCIÓN PRINCIPAL ---------- */
+async function cargarProductos(){
 
-    const config = await obtenerConfig();
+    const cfg = await obtenerConfig();
 
     const guardado = JSON.parse(localStorage.getItem("aud_aleatorios"));
-    const fechaGuardada = localStorage.getItem("aud_aleatorios_fecha");
+    const fecha    = localStorage.getItem("aud_aleatorios_fecha");
 
     let aleatorios;
 
-    /* Si toca renovar */
-    if (!guardado || debeRenovar(fechaGuardada, config.renovarCadaDias)) {
+    if(!guardado || debeRenovar(fecha,cfg.renovarCadaDias)){
+        const snap = await getDocs(collection(db,"productos"));
+        let activos=[];
 
-        const snap = await getDocs(collection(db, "productos"));
-        let activos = [];
-
-        snap.forEach(d => {
-            const x = d.data();
-            if (x.activo === true) {
-                activos.push({ id: d.id, ...x });
-            }
+        snap.forEach(d=>{
+            const x=d.data();
+            if(x.activo===true) activos.push({id:d.id,...x});
         });
 
-        // Selección aleatoria
-        aleatorios = activos.sort(() => 0.5 - Math.random()).slice(0, 20);
+        aleatorios = activos.sort(()=>0.5 - Math.random()).slice(0,20);
 
-        // Guardar nueva lista local
-        localStorage.setItem("aud_aleatorios", JSON.stringify(aleatorios));
+        localStorage.setItem("aud_aleatorios",JSON.stringify(aleatorios));
         localStorage.setItem("aud_aleatorios_fecha", new Date().toISOString());
 
-    } else {
+    }else{
         aleatorios = guardado;
     }
 
-    // Mezcla final
     const finalList = [
-        ...FIJOS_MANUALES.map((p, index) => ({
-            id: `fijo_${index}`,
-            concepto: p.concepto,
-            codigoBarra: p.codigo
+        ...FIJOS_MANUALES.map((p,i)=>({
+            id:`fijo_${i}`,
+            concepto:p.concepto,
+            codigoBarra:p.codigo
         })),
         ...aleatorios
     ];
 
-    localStorage.setItem("aud_productos", JSON.stringify(finalList));
+    localStorage.setItem("aud_productos",JSON.stringify(finalList));
 
-    pintarPantalla(finalList);
+    pintar(finalList);
 }
 
-/* ============================================================
-   🔥 RENDER DE PRODUCTOS
-============================================================ */
-function pintarPantalla(listaFinal) {
+/* ---------- PINTAR ---------- */
+function pintar(data){
 
-    // Limpia antes de pintar
-    lista.innerHTML = "";
+    lista.innerHTML="";
 
-    lista.innerHTML += `
-        <h3 style="color:#00416A; margin-top:20px;">Inventario Fijo – Productos Esenciales</h3>
-    `;
-
-    FIJOS_MANUALES.forEach((p, i) => {
-        lista.innerHTML += `
-            <div class="item" style="border-left:6px solid #d9534f;">
+    lista.innerHTML+=`<h3>Inventario Fijo</h3>`;
+    FIJOS_MANUALES.forEach((p,i)=>{
+        lista.innerHTML+=`
+            <div class="item">
                 <b>${p.concepto}</b><br>
                 <small>Código: ${p.codigo}</small>
                 <input id="p_fijo_${i}" type="number" placeholder="Cantidad contada">
-            </div>
-        `;
+            </div>`;
     });
 
-    lista.innerHTML += `
-        <h3 style="color:#00416A; margin-top:40px;">Inventario Aleatorio</h3>
-    `;
-
-    listaFinal.forEach(p => {
-        if (!p.id.startsWith("fijo_")) {
-            lista.innerHTML += `
+    lista.innerHTML+=`<h3>Inventario Aleatorio</h3>`;
+    data.forEach(p=>{
+        if(!p.id.startsWith("fijo_")){
+            lista.innerHTML+=`
                 <div class="item">
                     <b>${p.concepto}</b><br>
                     <small>Código: ${p.codigoBarra}</small>
                     <input id="p_${p.id}" type="number" placeholder="Cantidad contada">
-                </div>
-            `;
+                </div>`;
         }
     });
 }
@@ -220,22 +273,22 @@ cargarProductos();
 
 <script>
 function finalizar(){
-    if(confirm("¿Seguro de continuar? Los campos vacíos serán tomados como 0")){
-        const productos = JSON.parse(localStorage.getItem("aud_productos"));
-        let captura = [];
+    if(confirm("¿Seguro de continuar? Los campos vacíos serán 0?")){
+        const arr = JSON.parse(localStorage.getItem("aud_productos"));
+        const cap = [];
 
-        productos.forEach(p=>{
-            const cant = document.getElementById(`p_${p.id}`)?.value;
-            captura.push({
-                id: p.id,
-                concepto: p.concepto,
-                codigo: p.codigoBarra,
-                cantidad: Number(cant || 0)
+        arr.forEach(p=>{
+            const val = document.getElementById(`p_${p.id}`)?.value;
+            cap.push({
+                id:p.id,
+                concepto:p.concepto,
+                codigo:p.codigoBarra,
+                cantidad:Number(val || 0)
             });
         });
 
-        localStorage.setItem("aud_captura", JSON.stringify(captura));
-        window.location = "caducidades.html";
+        localStorage.setItem("aud_captura", JSON.stringify(cap));
+        window.location="caducidades.html";
     }
 }
 </script>

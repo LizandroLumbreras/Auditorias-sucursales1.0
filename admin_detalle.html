@@ -146,16 +146,18 @@ if(localStorage.getItem("admin_login")!=="true"){
 }
 
 const id = localStorage.getItem("admin_last_id");
+const sucursal = localStorage.getItem("admin_last_sucursal"); // ✔ sucursal correcta
 
-/* Cargar detalles únicamente desde la sucursal correcta */
 async function cargarDetalle(){
 
-    const sucursal = localStorage.getItem("admin_last_sucursal");  // ✔ sucursal exacta
     if(!sucursal){
         document.getElementById("contenido").innerHTML =
             "<div class='card'>No se encontró la sucursal.</div>";
         return;
     }
+
+    console.log("Sucursal:", sucursal);
+    console.log("ID:", id);
 
     const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
     const regSnap = await getDoc(regRef);
@@ -174,7 +176,7 @@ async function cargarDetalle(){
             <h3>Datos Generales</h3>
             <p><b>Nombre:</b> ${x.nombre}</p>
             <p><b>Usuario:</b> ${x.usuario || "No registrado"}</p>
-            <p><b>Sucursal:</b> ${sucursalEncontrada}</p>
+            <p><b>Sucursal:</b> ${sucursal}</p>
             <p><b>Fecha:</b> ${x.fecha}</p>
         </div>
     `;

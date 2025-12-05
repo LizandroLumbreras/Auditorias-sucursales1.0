@@ -213,16 +213,8 @@ if(localStorage.getItem("admin_login")!=="true"){
 
 /* Normalizar sucursal */
 const normalizarSucursal = (txt) => {
-    const t = txt.trim().toLowerCase();
-    const mapa = {
-        "ALLENDE1": "ALLENDE1",
-        "ALLENDE2": "ALLENDE2",
-        "CENTRAL": "CENTRAL",
-        "MONTEMORELOS": "MONTEMORELOS",
-        "PROVILEON": "PROVILEON",
-        "RIOVERDE": "RIOVERDE"
-    };
-    return mapa[t] || null;
+    if (!txt) return null;
+    return txt.trim().toUpperCase();
 };
 
 /* Cargar auditorías */

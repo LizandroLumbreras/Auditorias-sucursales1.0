@@ -99,21 +99,20 @@ const FIJOS_MANUALES = [
 ];
 
 /* ============================================================
-   🔥 NUEVO: CARGA CONFIGURACIÓN DESDE FIRESTORE
-   Documento: config/auditorias
-   Campo: renovarCadaDias  (ejemplo 7)
+   🔥 CARGAR CONFIG DESDE FIRESTORE
 ============================================================ */
 async function obtenerConfig() {
     const ref = doc(db, "config", "auditorias");
     const snap = await getDoc(ref);
+
     if (!snap.exists()) {
-        return { renovarCadaDias: 7 };   // por defecto
+        return { renovarCadaDias: 7 };   // default
     }
     return snap.data();
 }
 
 /* ============================================================
-   🔥 NUEVO: VERIFICAR SI DEBE GENERARSE NUEVA LISTA
+   🔥 VERIFICAR SI TOCA RENOVAR ALEATORIOS
 ============================================================ */
 function debeRenovar(fechaGuardada, dias) {
     if (!fechaGuardada) return true;
@@ -126,7 +125,7 @@ function debeRenovar(fechaGuardada, dias) {
 }
 
 /* ============================================================
-   🔥 PRINCIPAL
+   🔥 FUNCIÓN PRINCIPAL
 ============================================================ */
 async function cargarProductos() {
 
@@ -137,9 +136,7 @@ async function cargarProductos() {
 
     let aleatorios;
 
-    /* ---------------------------------------------------------
-       🔥 Si NO existe guardado o YA PASÓ EL TIEMPO → regenerar
-    ------------------------------------------------------------ */
+    /* Si toca renovar */
     if (!guardado || debeRenovar(fechaGuardada, config.renovarCadaDias)) {
 
         const snap = await getDocs(collection(db, "productos"));
@@ -152,14 +149,15 @@ async function cargarProductos() {
             }
         });
 
+        // Selección aleatoria
         aleatorios = activos.sort(() => 0.5 - Math.random()).slice(0, 20);
 
-        // Guardar la nueva lista
+        // Guardar nueva lista local
         localStorage.setItem("aud_aleatorios", JSON.stringify(aleatorios));
         localStorage.setItem("aud_aleatorios_fecha", new Date().toISOString());
 
     } else {
-        aleatorios = guardado; // mantener la misma lista
+        aleatorios = guardado;
     }
 
     // Mezcla final
@@ -174,13 +172,16 @@ async function cargarProductos() {
 
     localStorage.setItem("aud_productos", JSON.stringify(finalList));
 
-    pintarPantalla(aleatorios);
+    pintarPantalla(finalList);
 }
 
 /* ============================================================
-   🔥 DIBUJAR EN PANTALLA
+   🔥 RENDER DE PRODUCTOS
 ============================================================ */
-function pintarPantalla(aleatorios) {
+function pintarPantalla(listaFinal) {
+
+    // Limpia antes de pintar
+    lista.innerHTML = "";
 
     lista.innerHTML += `
         <h3 style="color:#00416A; margin-top:20px;">Inventario Fijo – Productos Esenciales</h3>
@@ -200,14 +201,16 @@ function pintarPantalla(aleatorios) {
         <h3 style="color:#00416A; margin-top:40px;">Inventario Aleatorio</h3>
     `;
 
-    aleatorios.forEach(p => {
-        lista.innerHTML += `
-            <div class="item">
-                <b>${p.concepto}</b><br>
-                <small>Código: ${p.codigoBarra}</small>
-                <input id="p_${p.id}" type="number" placeholder="Cantidad contada">
-            </div>
-        `;
+    listaFinal.forEach(p => {
+        if (!p.id.startsWith("fijo_")) {
+            lista.innerHTML += `
+                <div class="item">
+                    <b>${p.concepto}</b><br>
+                    <small>Código: ${p.codigoBarra}</small>
+                    <input id="p_${p.id}" type="number" placeholder="Cantidad contada">
+                </div>
+            `;
+        }
     });
 }
 
@@ -222,7 +225,7 @@ function finalizar(){
         let captura = [];
 
         productos.forEach(p=>{
-            const cant = document.getElementById(`p_${p.id}`).value;
+            const cant = document.getElementById(`p_${p.id}`)?.value;
             captura.push({
                 id: p.id,
                 concepto: p.concepto,

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Test Service Worker</title>
+</head>
+<body>
+<h1>Probando Service Worker…</h1>
+
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw-test.js")
+        .then(reg => {
+            console.log("SW registrado ✔", reg);
+            alert("✔ Service Worker registrado correctamente");
+        })
+        .catch(err => {
+            console.error("❌ Error al registrar SW", err);
+            alert("❌ No se pudo registrar el Service Worker");
+        });
+} else {
+    alert("❌ Este navegador NO soporta Service Workers");
+}
+</script>
+
+</body>
+</html>

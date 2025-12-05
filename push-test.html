@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Test Push</title>
+</head>
+<body style="background:#222; color:white; font-family:sans-serif; padding:40px;">
+<h2>Probar permiso de Notificaciones</h2>
+
+<button id="btn">Pedir permiso</button>
+
+<script>
+// Solicitar permiso de notificaciones
+document.getElementById("btn").onclick = async () => {
+
+    const permiso = await Notification.requestPermission();
+
+    if (permiso === "granted") {
+        new Notification("Notificaciones ACTIVADAS 👍", {
+            body: "Este navegador aceptó las notificaciones",
+            icon: "logo_proveedora.webp"
+        });
+    } else {
+        alert("El usuario NO aceptó notificaciones");
+    }
+};
+</script>
+
+</body>
+</html>

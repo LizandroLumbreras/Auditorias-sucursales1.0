@@ -8,67 +8,125 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
- body{
+
+:root{
+    --azul1:#00416A;
+    --azul2:#0c6cbd;
+    --blanco:#ffffff;
+}
+
+/* FONDO */
+body{
+   margin:0;
    font-family:'Poppins', sans-serif;
-   background:#f4f6fb;
-   padding:20px;
- }
+   min-height:100vh;
+   background: linear-gradient(135deg, var(--azul1), var(--azul2));
+   padding-top:40px;
+   position:relative;
+   overflow-x:hidden;
+}
 
- h2{
-   text-align:center;
-   color:#00416A;
-   margin-bottom:20px;
- }
+/* ✔ MARCA DE AGUA */
+.watermark{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:650px;
+    opacity:0.10;
+    pointer-events:none;
+    z-index:0;
+}
 
- .card{
-   background:white;
-   padding:25px;
-   border-radius:16px;
+/* TARJETA */
+.card{
+   background:rgba(255,255,255,0.18);
+   backdrop-filter:blur(14px);
+   padding:30px;
+   border-radius:18px;
    max-width:600px;
    margin:auto;
-   box-shadow:0 4px 16px rgba(0,0,0,.15);
- }
+   color:white;
+   box-shadow:0 8px 35px rgba(0,0,0,.25);
+   position:relative;
+   z-index:5;
+   animation: fadeUp .7s ease;
+}
 
- textarea{
+@keyframes fadeUp{
+    from{ opacity:0; transform:translateY(25px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+
+/* TÍTULO */
+h2{
+   text-align:center;
+   color:white;
+   margin-bottom:20px;
+   font-size:30px;
+   font-weight:600;
+}
+
+/* TEXTAREA */
+textarea{
    width:100%;
-   padding:12px;
-   border-radius:10px;
-   border:1px solid #bbb;
+   padding:14px;
+   border-radius:12px;
+   border:none;
+   outline:none;
    resize:none;
-   height:180px;
-   margin-top:15px;
+   height:170px;
    font-size:16px;
- }
+   background:rgba(255,255,255,0.90);
+   box-shadow:inset 0 2px 6px rgba(0,0,0,.15);
+   color:#333;
+   margin-top:15px;
+}
 
- button{
+/* BOTÓN */
+button{
    width:100%;
-   padding:15px;
+   padding:16px;
    border:none;
    border-radius:12px;
-   margin-top:20px;
-   font-size:17px;
+   margin-top:25px;
+   font-size:18px;
+   font-weight:600;
    cursor:pointer;
- }
+   transition:0.25s ease;
+   box-shadow:0 5px 12px rgba(0,0,0,.25);
+}
 
- .disabled{
+/* DESACTIVADO */
+.disabled{
    background:#9bb6c8;
    color:white;
    pointer-events:none;
- }
+}
 
- .enabled{
-   background:#00416A;
-   color:white;
- }
+/* ACTIVADO */
+.enabled{
+   background:white;
+   color:var(--azul1);
+}
+.enabled:hover{
+    background:#ececec;
+    transform:translateY(-2px);
+}
 </style>
 </head>
 
 <body>
 
+<!-- ✔ MARCA DE AGUA -->
+<img src="logo_proveedora.webp" class="watermark">
+
 <h2>Incidencias de Personal</h2>
 
 <div class="card">
-    <p>Escribe cualquier incidencia que haya ocurrido hoy (faltas, retardos, problemas, desempeño, etc.).</p>
+    <p style="font-size:17px;">
+        Escribe cualquier incidencia que haya ocurrido hoy (faltas, retardos, problemas, desempeño, etc.).
+    </p>
 
     <textarea id="incidencias" placeholder="Escribe aquí..."></textarea>
 
@@ -79,6 +137,7 @@
 const textarea = document.getElementById("incidencias");
 const btn = document.getElementById("btnContinuar");
 
+/* ACTIVAR BOTÓN AUTOMÁTICAMENTE */
 textarea.addEventListener("input", ()=>{
     const txt = textarea.value.trim();
 

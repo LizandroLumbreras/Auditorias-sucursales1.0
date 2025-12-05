@@ -167,12 +167,12 @@ button:hover{
 
 <select id="selSucursal" onchange="cargar()">
     <option value="">Selecciona sucursal…</option>
-    <option value="allende1">allende1</option>
-    <option value="allende2">allende2</option>
-    <option value="central">central</option>
-    <option value="montemorelos">montemorelos</option>
-    <option value="provileon">provileon</option>
-    <option value="rioverde">rioverde</option>
+    <option value="ALLENDE1">ALLENDE 1</option>
+    <option value="ALLENDE2">ALLENDE 2</option>
+    <option value="CENTRAL">CENTRAL</option>
+    <option value="MONTEMORELOS">MONTEMORELOS</option>
+    <option value="PROVILEON">PROVILEON</option>
+    <option value="RIOVERDE">RIOVERDE</option>
 </select>
 
 <div id="lista"></div>
@@ -215,12 +215,12 @@ if(localStorage.getItem("admin_login")!=="true"){
 const normalizarSucursal = (txt) => {
     const t = txt.trim().toLowerCase();
     const mapa = {
-        "allende1": "allende1",
-        "allende2": "allende2",
-        "central": "central",
-        "montemorelos": "montemorelos",
+        "allende1": "ALLENDE1",
+        "allende2": "ALLENDE2",
+        "central": "CENTRAL",
+        "montemorelos": "MONTEMORELOS",
         "provileon": "PROVILEON",
-        "rioverde": "rioverde"
+        "rioverde": "RIOVERDE"
     };
     return mapa[t] || null;
 };

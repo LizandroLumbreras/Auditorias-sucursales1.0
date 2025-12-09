@@ -201,6 +201,15 @@ button:hover{
     <div id="msg"></div>
 </div>
 
+<!-- 💥💥💥 BOTÓN PARA ENVIAR AVISO A TODOS LOS DISPOSITIVOS 💥💥💥 -->
+<div class="card-config" style="margin-top:35px;">
+    <h3>Enviar aviso de auditoría</h3>
+
+    <button id="btnAviso">Enviar notificación</button>
+
+    <p id="resultadoAviso" style="margin-top:12px; font-weight:bold;"></p>
+</div>
+
 <script type="module">
 import { db } from "./firebase.js";
 import { collection, getDocs, doc, getDoc, setDoc } 
@@ -299,6 +308,24 @@ window.regenerarAhora = () => {
     document.getElementById("msg").innerHTML =
         `<p class="ok">Se regenerará la lista al próximo acceso</p>`;
 };
+
+/* 🚨 FUNCIÓN PARA ENVIAR AVISO A TODOS LOS DISPOSITIVOS 🚨 */
+document.getElementById("btnAviso").addEventListener("click", async () => {
+    const resultado = document.getElementById("resultadoAviso");
+    resultado.innerText = "Enviando aviso...";
+
+    try {
+        const resp = await fetch(
+            "https://us-central1-inventariopv-643f1.cloudfunctions.net/enviarAvisoInventario"
+        );
+
+        const txt = await resp.text();
+        resultado.innerText = txt;
+    } catch (error) {
+        resultado.innerText = "Error: " + error.message;
+        console.error(error);
+    }
+});
 
 </script>
 

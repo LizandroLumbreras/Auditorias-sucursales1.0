@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
+/* --- ESTILOS TUYOS SIN CAMBIOS --- */
 :root{
     --azul1:#00416A;
     --azul2:#0c6cbd;
@@ -113,8 +114,9 @@ button:hover{
 
 <body>
 
-<img src="logo_proveedora.webp" class="watermark" alt="Logo">
+<img src="logo_proveedora.webp" class="watermark">
 
+<!-- NIEVE -->
 <script>
 for(let i = 0; i < 30; i++){
     let snow = document.createElement("div");
@@ -142,11 +144,9 @@ for(let i = 0; i < 30; i++){
   <button onclick="login()">Entrar</button>
 </div>
 
-<!-- LOGIN FIRESTORE -->
+<!-- LOGIN -->
 <script type="module">
 import { db } from "./firebase.js";
-import { collection, getDocs } 
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 async function login(){
 
@@ -161,7 +161,7 @@ async function login(){
         return;
     }
 
-    const snap = await getDocs(collection(db, "usuarios_ruta"));
+    const snap = await db.collection("usuarios_ruta").get();
     let usuarioData = null;
 
     snap.forEach(doc=>{
@@ -196,49 +196,38 @@ async function login(){
 window.login = login;
 </script>
 
-<!-- REGISTRO SERVICE WORKER -->
+<!-- REGISTRO SW -->
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("firebase-messaging-sw.js")
-    .then(() => console.log("Service Worker registrado"))
-    .catch(err => console.error("Error registrando SW:", err));
+    .then(() => console.log("SW registrado"))
+    .catch(err => console.error("Error SW:", err));
 }
 </script>
 
-<!-- TOKEN FCM (CORREGIDO) -->
+<!-- TOKEN FCM (COMPAT) -->
 <script type="module">
 import { db, messaging } from "./firebase.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 async function registrarTokenFCM() {
   try {
     const permiso = await Notification.requestPermission();
+    if (permiso !== "granted") return;
 
-    if (permiso !== "granted") {
-      console.log("Notificaciones NO permitidas");
-      return;
-    }
-
-    const token = await getToken(messaging, {
+    const token = await messaging.getToken({
       vapidKey: "BLt4rv7wbb6evfUbK0knw8bijlHOMRKwE7bbBWSum8JppgS2KbGW1F4GgWWCfjz8WCfMDQO39mqQjBqVRvhuPGg"
     });
 
-    if (!token) {
-      console.log("Token no generado");
-      return;
-    }
+    if (!token) return;
 
-    console.log("Token FCM:", token);
-
-    await setDoc(doc(db, "pushTokens", token), {
+    await db.collection("pushTokens").doc(token).set({
       creado: new Date().toISOString()
     });
 
-    console.log("Token guardado en Firestore");
+    console.log("Token guardado:", token);
 
   } catch (error) {
-    console.error("Error guardando token:", error);
+    console.error("Error token:", error);
   }
 }
 

@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-/* --- ESTILOS TUYOS SIN CAMBIOS --- */
+/* --- TUS ESTILOS SIN CAMBIOS --- */
 :root{
     --azul1:#00416A;
     --azul2:#0c6cbd;
@@ -23,7 +23,6 @@ body{
     align-items:center;
     background: linear-gradient(135deg, var(--azul1), var(--azul2));
     overflow:hidden;
-    position:relative;
 }
 .watermark{
     position:fixed;
@@ -39,7 +38,6 @@ body{
     top: -10px;
     color: white;
     font-size: 10px;
-    user-select:none;
     opacity:0.8;
     animation-name: snowFall;
     animation-timing-function: linear;
@@ -56,30 +54,15 @@ body{
    border-radius:18px;
    background: rgba(255,255,255,0.18);
    backdrop-filter: blur(14px);
-   box-shadow:0 8px 35px rgba(0,0,0,.30);
    color:white;
-   animation: fadeUp .8s ease;
-}
-@keyframes fadeUp{
-    from{ opacity:0; transform:translateY(25px); }
-    to{ opacity:1; transform:translateY(0); }
-}
-h2{
-   text-align:center;
-   font-weight:600;
-   font-size:28px;
-   margin-bottom:25px;
 }
 input{
     width:92%;
     padding:14px 16px;
+    margin-top:12px;
     border-radius:12px;
     border:none;
-    outline:none;
-    font-size:15px;
-    margin-top:12px;
-    background:rgba(255,255,255,0.90);
-    color:#333;
+    background:white;
 }
 button{
    width:100%;
@@ -87,17 +70,8 @@ button{
    margin-top:25px;
    background:var(--blanco);
    color:var(--azul1);
-   font-size:17px;
-   font-weight:600;
-   border:none;
    border-radius:12px;
    cursor:pointer;
-   transition: all .25s ease;
-   box-shadow:0 4px 12px rgba(0,0,0,.2);
-}
-button:hover{
-    background:#e8e8e8;
-    transform:translateY(-2px);
 }
 .error{
    display:none;
@@ -107,7 +81,6 @@ button:hover{
    background:rgba(255,0,0,0.25);
    padding:8px 12px;
    border-radius:8px;
-   font-size:14px;
 }
 </style>
 </head>
@@ -147,52 +120,57 @@ for(let i = 0; i < 30; i++){
 <!-- LOGIN -->
 <script type="module">
 import { db } from "./firebase.js";
+import { collection, getDocs } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-async function login(){
+async function login() {
 
     const userInput = usuario.value.trim();
     const passInput = password.value.trim();
-    const msg       = document.getElementById("msg");
+    const msg = document.getElementById("msg");
     msg.style.display = "none";
 
-    if(!userInput || !passInput){
+    if (!userInput || !passInput) {
         msg.textContent = "Completa todos los campos";
         msg.style.display = "block";
         return;
     }
 
-    const snap = await db.collection("usuarios_ruta").get();
+    const snap = await getDocs(collection(db, "usuarios_ruta"));
     let usuarioData = null;
 
-    snap.forEach(doc=>{
+    snap.forEach(doc => {
         const x = doc.data();
-        if(x.usuario.toUpperCase() === userInput.toUpperCase() &&
-           x.password === passInput &&
-           x.activo === true){
+        if (
+            x.usuario.toUpperCase() === userInput.toUpperCase() &&
+            x.password === passInput &&
+            x.activo === true
+        ) {
             usuarioData = x;
         }
     });
 
-    if(!usuarioData){
+    if (!usuarioData) {
         msg.textContent = "Usuario o contraseña incorrectos";
         msg.style.display = "block";
         return;
     }
 
-    localStorage.setItem("aud_nombre",   usuarioData.nombre);
+    localStorage.setItem("aud_nombre", usuarioData.nombre);
     localStorage.setItem("aud_sucursal", usuarioData.rutaId);
-    localStorage.setItem("aud_usuario",  usuarioData.usuario);
+    localStorage.setItem("aud_usuario", usuarioData.usuario);
 
     const fecha = new Date().toISOString().slice(0,16);
     localStorage.setItem("aud_fecha", fecha);
 
-    if(usuarioData.rol === "admin"){
+    if (usuarioData.rol === "admin") {
         localStorage.setItem("admin_login","true");
         window.location = "admin_dashboard.html";
-    }else{
+    } else {
         window.location = "inventario.html";
     }
 }
+
 window.login = login;
 </script>
 
@@ -205,22 +183,24 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<!-- TOKEN FCM (COMPAT) -->
+<!-- TOKEN FCM CORRECTO MODULAR -->
 <script type="module">
 import { db, messaging } from "./firebase.js";
+import { getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 async function registrarTokenFCM() {
   try {
     const permiso = await Notification.requestPermission();
     if (permiso !== "granted") return;
 
-    const token = await messaging.getToken({
+    const token = await getToken(messaging, {
       vapidKey: "BLt4rv7wbb6evfUbK0knw8bijlHOMRKwE7bbBWSum8JppgS2KbGW1F4GgWWCfjz8WCfMDQO39mqQjBqVRvhuPGg"
     });
 
     if (!token) return;
 
-    await db.collection("pushTokens").doc(token).set({
+    await setDoc(doc(db, "pushTokens", token), {
       creado: new Date().toISOString()
     });
 

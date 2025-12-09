@@ -8,14 +8,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-
 :root{
     --azul1:#00416A;
     --azul2:#0c6cbd;
     --blanco:#ffffff;
 }
-
-/* FONDO GENERAL */
 body{
     margin:0;
     font-family:'Poppins',sans-serif;
@@ -27,8 +24,6 @@ body{
     overflow:hidden;
     position:relative;
 }
-
-/* MARCA DE AGUA ESTÁTICA */
 .watermark{
     position:fixed;
     top:50%;
@@ -37,10 +32,7 @@ body{
     width:1400px;
     opacity:0.10;
     pointer-events:none;
-    z-index:0;
 }
-
-/* COPOS DE NIEVE */
 .snowflake {
     position: fixed;
     top: -10px;
@@ -48,18 +40,14 @@ body{
     font-size: 10px;
     user-select:none;
     opacity:0.8;
-    z-index:1;
     animation-name: snowFall;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
 }
-
 @keyframes snowFall {
     0% { transform: translateY(-10vh); }
     100% { transform: translateY(110vh); }
 }
-
-/* TARJETA LOGIN */
 .card{
    width:90%;
    max-width:400px;
@@ -70,22 +58,17 @@ body{
    box-shadow:0 8px 35px rgba(0,0,0,.30);
    color:white;
    animation: fadeUp .8s ease;
-   z-index:5;
 }
-
 @keyframes fadeUp{
     from{ opacity:0; transform:translateY(25px); }
     to{ opacity:1; transform:translateY(0); }
 }
-
 h2{
    text-align:center;
    font-weight:600;
    font-size:28px;
    margin-bottom:25px;
 }
-
-/* INPUTS */
 input{
     width:92%;
     padding:14px 16px;
@@ -97,8 +80,6 @@ input{
     background:rgba(255,255,255,0.90);
     color:#333;
 }
-
-/* BOTÓN */
 button{
    width:100%;
    padding:15px;
@@ -113,13 +94,10 @@ button{
    transition: all .25s ease;
    box-shadow:0 4px 12px rgba(0,0,0,.2);
 }
-
 button:hover{
     background:#e8e8e8;
     transform:translateY(-2px);
 }
-
-/* ERROR */
 .error{
    display:none;
    margin-top:10px;
@@ -130,16 +108,13 @@ button:hover{
    border-radius:8px;
    font-size:14px;
 }
-
 </style>
 </head>
 
 <body>
 
-<!-- MARCA DE AGUA -->
 <img src="logo_proveedora.webp" class="watermark" alt="Logo">
 
-<!-- NIEVE (30 copos) -->
 <script>
 for(let i = 0; i < 30; i++){
     let snow = document.createElement("div");
@@ -152,7 +127,6 @@ for(let i = 0; i < 30; i++){
     document.body.appendChild(snow);
 }
 </script>
-
 
 <div class="card">
   <h2>Iniciar Sesión</h2>
@@ -168,9 +142,8 @@ for(let i = 0; i < 30; i++){
   <button onclick="login()">Entrar</button>
 </div>
 
-
+<!-- LOGIN FIRESTORE -->
 <script type="module">
-
 import { db } from "./firebase.js";
 import { collection, getDocs } 
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -220,11 +193,10 @@ async function login(){
         window.location = "inventario.html";
     }
 }
-
 window.login = login;
-
 </script>
-<!-- REGISTRO DE SW -->
+
+<!-- REGISTRO SERVICE WORKER -->
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("firebase-messaging-sw.js")
@@ -233,11 +205,11 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<!-- TOKEN FCM -->
+<!-- TOKEN FCM (CORREGIDO) -->
 <script type="module">
 import { db, messaging } from "./firebase.js";
-import { doc, setDoc }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 async function registrarTokenFCM() {
   try {
@@ -248,7 +220,7 @@ async function registrarTokenFCM() {
       return;
     }
 
-    const token = await messaging.getToken({
+    const token = await getToken(messaging, {
       vapidKey: "BLt4rv7wbb6evfUbK0knw8bijlHOMRKwE7bbBWSum8JppgS2KbGW1F4GgWWCfjz8WCfMDQO39mqQjBqVRvhuPGg"
     });
 
@@ -272,5 +244,6 @@ async function registrarTokenFCM() {
 
 registrarTokenFCM();
 </script>
+
 </body>
 </html>

@@ -1,5 +1,7 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js";
-import { getMessaging } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js";
+// Firebase modular
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getMessaging } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCK5nb6u2CGRJ8AB1aPlRn54b97bdeAFeM",
@@ -10,7 +12,11 @@ const firebaseConfig = {
   appId: "1:96242533231:web:aae75a18fbaf9840529e9a"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Initialize app
+export const app = initializeApp(firebaseConfig);
 
-export const db = firebase.firestore();
-export const messaging = firebase.messaging();
+// Firestore
+export const db = getFirestore(app);
+
+// Messaging (solo frontend)
+export const messaging = getMessaging(app);

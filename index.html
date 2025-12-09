@@ -224,12 +224,53 @@ async function login(){
 window.login = login;
 
 </script>
+<!-- REGISTRO DE SW -->
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("firebase-messaging-sw.js")
-  .then(() => console.log("SW registrado"))
-  .catch(err => console.error("Error registrando SW", err));
+    .then(() => console.log("Service Worker registrado"))
+    .catch(err => console.error("Error registrando SW:", err));
 }
+</script>
+
+<!-- TOKEN FCM -->
+<script type="module">
+import { db, messaging } from "./firebase.js";
+import { doc, setDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+async function registrarTokenFCM() {
+  try {
+    const permiso = await Notification.requestPermission();
+
+    if (permiso !== "granted") {
+      console.log("Notificaciones NO permitidas");
+      return;
+    }
+
+    const token = await messaging.getToken({
+      vapidKey: "BLt4rv7wbb6evfUbK0knw8bijlHOMRKwE7bbBWSum8JppgS2KbGW1F4GgWWCfjz8WCfMDQO39mqQjBqVRvhuPGg"
+    });
+
+    if (!token) {
+      console.log("Token no generado");
+      return;
+    }
+
+    console.log("Token FCM:", token);
+
+    await setDoc(doc(db, "pushTokens", token), {
+      creado: new Date().toISOString()
+    });
+
+    console.log("Token guardado en Firestore");
+
+  } catch (error) {
+    console.error("Error guardando token:", error);
+  }
+}
+
+registrarTokenFCM();
 </script>
 </body>
 </html>

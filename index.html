@@ -224,6 +224,12 @@ async function login(){
 window.login = login;
 
 </script>
-
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("firebase-messaging-sw.js")
+  .then(() => console.log("SW registrado"))
+  .catch(err => console.error("Error registrando SW", err));
+}
+</script>
 </body>
 </html>

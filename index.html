@@ -177,7 +177,7 @@ window.login = login;
 <!-- REGISTRO SW -->
 <script>
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/firebase-messaging-sw.js")
+  navigator.serviceWorker.register("../firebase-messaging-sw.js")
     .then(() => console.log("SW registrado"))
     .catch(err => console.error("Error SW:", err));
 }

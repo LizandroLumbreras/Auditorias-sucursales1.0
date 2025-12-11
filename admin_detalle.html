@@ -290,7 +290,7 @@ document.getElementById("btnPDF").onclick = async ()=>{
     }
 
     // IMPORTANTE → CON ./ PARA QUE CARGUE BIEN EN GITHUB PAGES
-   const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABgAAAAQACAYAAAAncZJCAAEAAElEQVR4nOz9ybr...Wr9";
+  const logoBase64 = await getBase64Image("./logo_proveedora.png");
 
     // Firma ya viene en base64, solo limpiamos:
     const firmaBase64 = (x.firma || "").trim();

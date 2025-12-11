@@ -275,19 +275,30 @@ document.getElementById("btnPDF").onclick = async ()=>{
 
     const x = snap.data();
 
-    /* Convertir el logo a base64 */
-    async function getBase64Image(url) {
+    /* ===========================
+       CONVERTIR LOGO A BASE64
+    ============================ */
+
+    async function getBase64Image(url){
         const res = await fetch(url);
         const blob = await res.blob();
-        return new Promise((resolve) => {
+        return new Promise(resolve=>{
             const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
+            reader.onloadend = ()=> resolve(reader.result);
             reader.readAsDataURL(blob);
         });
     }
 
-    const logoBase64 = await getBase64Image("logo_proveedora.webp");
-    const firmaBase64 = x.firma;  // ya viene en base64
+    // IMPORTANTE → CON ./ PARA QUE CARGUE BIEN EN GITHUB PAGES
+    const logoBase64 = await getBase64Image("./logo_proveedora.webp");
+
+    // Firma ya viene en base64, solo limpiamos:
+    const firmaBase64 = (x.firma || "").trim();
+
+    if (!firmaBase64.startsWith("data:image")) {
+        alert("La firma no es una imagen válida.");
+        return;
+    }
 
     /* =======================
        TABLAS PARA EL PDF

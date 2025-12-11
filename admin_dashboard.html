@@ -154,6 +154,38 @@ button:hover{
     from{ opacity:0; transform:translateY(20px); }
     to{ opacity:1; transform:translateY(0); }
 }
+.tabla-aud {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:12px;
+    background:white;
+    color:#222;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
+}
+
+.tabla-aud th {
+    background:#00416A;
+    color:white;
+    padding:10px;
+    font-size:14px;
+}
+
+.tabla-aud td {
+    padding:8px;
+    border-bottom:1px solid #ddd;
+    text-align:center;
+    font-size:14px;
+}
+.tabla-seccion {
+    background:rgba(255,255,255,0.15);
+    color:white;
+    font-weight:bold;
+    padding:6px 10px;
+    margin-top:18px;
+    border-radius:10px;
+}
 
 </style>
 </head>
@@ -176,6 +208,12 @@ button:hover{
 </select>
 
 <div id="lista"></div>
+
+    <!-- NUEVA TABLA COMBINADA -->
+<div class="card" id="tablaInventario" style="margin-top:35px;">
+    <h3 style="color:white;">Inventario Fijo y Aleatorio</h3>
+    <div id="tablaContenido"></div>
+</div>
 
 <!-- TARJETA INVENTARIO FIJO -->
 <div class="card-fijo" onclick="location.href='admin_fijos.html'">
@@ -291,6 +329,102 @@ async function cargarConfig() {
     }
 }
 cargarConfig();
+/* ========= MOSTRAR TABLA COMBINADA ========= */
+/* ====== LISTA FIJA (MISMA QUE LA PÁGINA DE CAPTURA) ====== */
+const FIJOS_MANUALES = [
+  { codigo: "75035259", concepto: "MARLBORO BLANCO 100" },
+  { codigo: "75068738", concepto: "MARLBORO BLANCO DURO" },
+  { codigo: "75068745", concepto: "MARLBORO BLANCO SUAVE" },
+  { codigo: "75021597", concepto: "MARLBORO ROJO 100" },
+  { codigo: "75001322", concepto: "MARLBORO ROJO DURO" },
+  { codigo: "75001315", concepto: "MARLBORO ROJO SUAVE" },
+  { codigo: "75025271", concepto: "MARLBORO FUSION SUMER" },
+  { codigo: "75068776", concepto: "BENSON DORADO" },
+  { codigo: "75016777", concepto: "BENSON MENTHOL" },
+  { codigo: "75068783", concepto: "MARLBORO RUBI" },
+  { codigo: "75071295", concepto: "PALL MALL ALASKA" },
+  { codigo: "8346917", concepto: "PALL MALL BLANCO" },
+  { codigo: "75064648", concepto: "PALL MALL MYKONOS PEPINO" },
+  { codigo: "75052836", concepto: "PALL MALL TOKYO" },
+  { codigo: "7503040150115", concepto: "LINK ROJO" },
+  { codigo: "7502252634314", concepto: "LINK BLANCO" },
+  { codigo: "7503040150115", concepto: "LINK ICE" },
+  { codigo: "75046521", concepto: "LUCKY STRIKE" },
+  { codigo: "75031053", concepto: "MARLBORO ICE XPRESS" },
+  { codigo: "75018627", concepto: "BENSON MENTHOL LIGTH" },
+  { codigo: "75027766", concepto: "PALL MALL XL ROJO" },
+  { codigo: "7502252631313", concepto: "GARAÑON ROJO" },
+  { codigo: "7503040150023", concepto: "GARAÑON BLANCO" },
+  { codigo: "1247", concepto: "CELOFAN ROJO" },
+  { codigo: "2229", concepto: "CELOFAN AMARILLO" },
+  { codigo: "1248", concepto: "CELOFAN BLANCO" },
+  { codigo: "1249", concepto: "NUEZ PEDAZO" },
+  { codigo: "1250", concepto: "NUEZ ENTERA" },
+  { codigo: "230001", concepto: "NUEZ GRANILLO" },
+  { codigo: "40", concepto: "CHILE JAPONES" }
+];
+
+function mostrarTablaAdmin() {
+
+    const cont = document.getElementById("tablaContenido");
+    cont.innerHTML = "";
+
+    /* ===== TABLA FIJOS ===== */
+    cont.innerHTML += `<div class='tabla-seccion'>Inventario Fijo</div>`;
+    cont.innerHTML += `
+        <table class="tabla-aud">
+        <tr>
+            <th>Código</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+        </tr>
+    `;
+
+    FIJOS_MANUALES.forEach(f => {
+        cont.innerHTML += `
+            <tr>
+                <td>${f.codigo}</td>
+                <td>${f.concepto}</td>
+                <td>—</td>
+            </tr>
+        `;
+    });
+    cont.innerHTML += `</table>`;
+
+    /* ===== TABLA ALEATORIOS ===== */
+    cont.innerHTML += `<div class='tabla-seccion'>Inventario Aleatorio</div>`;
+
+    const aleatorios = JSON.parse(localStorage.getItem("aud_aleatorios"));
+
+    if (!aleatorios || aleatorios.length === 0) {
+        cont.innerHTML += `<p style="color:white;opacity:.8;">Aún no se han generado productos aleatorios.</p>`;
+        return;
+    }
+
+    cont.innerHTML += `
+        <table class="tabla-aud">
+        <tr>
+            <th>Código</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+        </tr>
+    `;
+
+    aleatorios.forEach(a => {
+        cont.innerHTML += `
+            <tr>
+                <td>${a.codigoBarra}</td>
+                <td>${a.concepto}</td>
+                <td>—</td>
+            </tr>
+        `;
+    });
+
+    cont.innerHTML += `</table>`;
+}
+
+// Ejecutar tabla al cargar admin
+mostrarTablaAdmin();
 
 /* Guardar configuración */
 window.guardarConfig = async () => {

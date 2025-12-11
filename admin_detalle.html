@@ -190,29 +190,33 @@ async function cargarDetalle(){
     document.getElementById("invFijo").innerHTML = generarTabla(fijos);
     document.getElementById("invAlea").innerHTML = generarTabla(alea);
 
-   /* CADUCIDADES + PREGUNTAS EN LA VISTA */
-let cadHTML = "";
+/* CADUCIDADES — MUESTRA PREGUNTAS + RESPUESTAS */
+let cad = x.caducidades;
 
-// Caducidades
-if (x.caducidades) {
-    cadHTML += `<h4 style="margin-top:0;">Fechas de caducidad registradas:</h4>`;
-    cadHTML += Object.values(x.caducidades).join("<br><br>");
+if (!cad) {
+    document.getElementById("cadList").innerHTML = "Sin información";
 } else {
-    cadHTML += "Sin caducidades registradas.<br><br>";
-}
+    const preguntas = [
+        "1. Revisa caducidades de CREMAS y ADEREZOS y apúntalas aquí:",
+        "2. Revisa caducidades de BIG COLA y LÍQUIDOS:",
+        "3. Revisa caducidades de NUTRI LECHE y LÁCTEOS:",
+        "4. ¿Algún otro producto con caducidad próxima?",
+        "5. ¿Detectaste producto hinchado, dañado o con mala presentación?"
+    ];
 
-// Preguntas
-cadHTML += `<h4 style="margin-top:20px;">Preguntas del auditor:</h4>`;
+    let html = "";
 
-if (x.preguntas && x.preguntas.length > 0) {
-    cadHTML += x.preguntas
-        .map(q => `<p><b>${q.p}</b><br>→ ${q.r}</p>`)
+    html += `<b>Fechas de caducidad registradas y observaciones:</b><br><br>`;
+
+    html += preguntas
+        .map((p, i) => {
+            const key = "p" + (i + 1);
+            return `<p><b>${p}</b><br>${cad[key] || "Sin respuesta"}</p>`;
+        })
         .join("");
-} else {
-    cadHTML += "Sin preguntas registradas.";
-}
 
-document.getElementById("cadList").innerHTML = cadHTML;
+    document.getElementById("cadList").innerHTML = html;
+}
 
     /* DEVOLUCIONES */
     document.getElementById("devList").innerHTML =
@@ -335,30 +339,34 @@ document.getElementById("btnPDF").onclick = async ()=>{
         };
     }
 
-    /* ===========================
-       SECCIÓN CADUCIDADES + PREGUNTAS
-    ============================ */
-    let cadArray = [];
-    
-    if (x.caducidades) {
-        cadArray.push({text:"Fechas de caducidad registradas:", bold:true});
-        cadArray.push({
-            ul: Object.values(x.caducidades)
-        });
-    } else {
-        cadArray.push({text:"Sin caducidades registradas"});
-    }
+/* === CADUCIDADES CON PREGUNTAS === */
 
-    // Preguntas
-    cadArray.push({text:"\nPreguntas del auditor:", bold:true, margin:[0,10,0,3]});
+const preguntasCad = [
+    "1. Revisa caducidades de CREMAS y ADEREZOS:",
+    "2. Revisa caducidades de BIG COLA y LÍQUIDOS:",
+    "3. Revisa caducidades de NUTRI LECHE y LÁCTEOS:",
+    "4. ¿Algún otro producto con caducidad próxima?",
+    "5. ¿Detectaste producto hinchado, dañado o con mala presentación?"
+];
 
-    if (x.preguntas?.length) {
+let cadArray = [];
+
+if (x.caducidades) {
+
+    cadArray.push({text:"Caducidades revisadas:", bold:true, margin:[0,0,0,8]});
+
+    preguntasCad.forEach((p, idx) => {
+        const key = "p" + (idx + 1);
         cadArray.push({
-            ul: x.preguntas.map(q => `${q.p} — RESPUESTA: ${q.r}`)
+            text: `${p}\n${x.caducidades[key] || "Sin respuesta"}`,
+            margin:[0,5]
         });
-    } else {
-        cadArray.push({text:"Sin preguntas registradas"});
-    }
+    });
+
+} else {
+    cadArray.push({text:"Sin información de caducidades."});
+}
+
 
     /* ===========================
         DOCUMENTO PDF

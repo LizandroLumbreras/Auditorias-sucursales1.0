@@ -169,7 +169,8 @@ h2{
 <h3 class="section-title">Sugerencias</h3>
 <div id="sugList" class="card"></div>
 
-
+<h3 class="section-title">Preguntas y Respuestas</h3>
+<div id="qaList" class="card"></div>
 
 <script type="module">
 import { db } from "./firebase.js";
@@ -182,8 +183,11 @@ if(localStorage.getItem("admin_login")!=="true"){
 }
 
 const id = localStorage.getItem("admin_last_id");
-const sucursal = localStorage.getItem("admin_last_sucursal"); // ✔ SUCURSAL REAL
+const sucursal = localStorage.getItem("admin_last_sucursal");
 
+/* ===========================================================
+   CARGAR DETALLE
+   =========================================================== */
 async function cargarDetalle(){
 
     if(!sucursal){
@@ -203,7 +207,6 @@ async function cargarDetalle(){
 
     const x = regSnap.data();
 
-    /* ✔ Datos generales corregidos */
     document.getElementById("contenido").innerHTML = `
         <div class="card">
             <h3>Datos Generales</h3>
@@ -214,16 +217,16 @@ async function cargarDetalle(){
         </div>
     `;
 
-    /* ✔ Inventario */
+    /* Inventario */
     renderInventario(x.inventario || []);
 
-    /* ✔ Caducidades */
+    /* Caducidades */
     document.getElementById("cadList").innerHTML =
         x.caducidades
             ? Object.values(x.caducidades).join("<br><br>")
             : "Sin información";
 
-    /* ✔ Devoluciones */
+    /* Devoluciones */
     document.getElementById("devList").innerHTML =
         x.devoluciones && x.devoluciones.length > 0
             ? x.devoluciones.map(d=>`
@@ -234,29 +237,40 @@ async function cargarDetalle(){
             `).join("")
             : "Sin devoluciones";
 
-    /* ✔ Incidencias */
+    /* Incidencias */
     document.getElementById("incList").innerHTML =
         x.incidencias || "Sin incidencias";
 
-    /* ✔ Sugerencias */
+    /* Sugerencias */
     document.getElementById("sugList").innerHTML =
         x.sugerencias || "Sin sugerencias";
+
+    /* ===========================================================
+       ✔ PREGUNTAS Y RESPUESTAS
+       =========================================================== */
+    if (x.preguntas && x.preguntas.length > 0) {
+        document.getElementById("qaList").innerHTML =
+            x.preguntas.map(q => `
+                <p><b>${q.p}</b><br>→ ${q.r}</p>
+            `).join("");
+    } else {
+        document.getElementById("qaList").innerHTML =
+            "Sin preguntas registradas";
+    }
 }
 
-/* Render inventario */
+/* ===========================================================
+   RENDER INVENTARIO
+   =========================================================== */
 function renderInventario(lista){
 
     const invDiv = document.getElementById("invList");
     invDiv.innerHTML = "";
-    invDiv.classList.remove("grid"); // quitar grid para evitar recuadros vacios
 
-    // Separar fijos y aleatorios
     const fijos = lista.filter(p => p.id && p.id.startsWith("fijo_"));
     const aleatorios = lista.filter(p => !p.id || !p.id.startsWith("fijo_"));
 
-    /* ======================================
-       INVENTARIO FIJO (CON TÍTULO ARRIBA)
-       ====================================== */
+    /* Fijos */
     invDiv.innerHTML += `
         <h3 class="section-title" style="margin-top:10px;">Inventario Fijo</h3>
     `;
@@ -282,9 +296,7 @@ function renderInventario(lista){
         invDiv.innerHTML += `<p style="opacity:.8;">Sin productos fijos capturados.</p>`;
     }
 
-    /* ======================================
-       INVENTARIO ALEATORIO (CON TÍTULO ARRIBA)
-       ====================================== */
+    /* Aleatorios */
     invDiv.innerHTML += `
         <h3 class="section-title" style="margin-top:40px;">Inventario Aleatorio</h3>
     `;
@@ -313,6 +325,5 @@ function renderInventario(lista){
 
 cargarDetalle();
 </script>
-
 </body>
 </html>

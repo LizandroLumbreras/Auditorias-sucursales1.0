@@ -248,17 +248,20 @@ function renderInventario(lista){
 
     const invDiv = document.getElementById("invList");
     invDiv.innerHTML = "";
+    invDiv.classList.remove("grid"); // quitar grid para evitar recuadros vacios
 
-    // Detectar fijos y aleatorios
+    // Separar fijos y aleatorios
     const fijos = lista.filter(p => p.id && p.id.startsWith("fijo_"));
     const aleatorios = lista.filter(p => !p.id || !p.id.startsWith("fijo_"));
 
-    /* ====== TABLA FIJOS ====== */
-    invDiv.innerHTML += `<div class="tabla-seccion">Inventario Fijo</div>`;
+    /* ======================================
+       INVENTARIO FIJO (CON TÍTULO ARRIBA)
+       ====================================== */
+    invDiv.innerHTML += `
+        <h3 class="section-title" style="margin-top:10px;">Inventario Fijo</h3>
+    `;
 
-    if (fijos.length === 0) {
-        invDiv.innerHTML += `<p style="opacity:.8;">Sin productos fijos capturados.</p>`;
-    } else {
+    if (fijos.length > 0) {
         invDiv.innerHTML += `
             <table class="tabla-aud">
                 <tr>
@@ -275,14 +278,18 @@ function renderInventario(lista){
                 `).join("")}
             </table>
         `;
+    } else {
+        invDiv.innerHTML += `<p style="opacity:.8;">Sin productos fijos capturados.</p>`;
     }
 
-    /* ====== TABLA ALEATORIOS ====== */
-    invDiv.innerHTML += `<div class="tabla-seccion">Inventario Aleatorio</div>`;
+    /* ======================================
+       INVENTARIO ALEATORIO (CON TÍTULO ARRIBA)
+       ====================================== */
+    invDiv.innerHTML += `
+        <h3 class="section-title" style="margin-top:40px;">Inventario Aleatorio</h3>
+    `;
 
-    if (aleatorios.length === 0) {
-        invDiv.innerHTML += `<p style="opacity:.8;">Sin productos aleatorios.</p>`;
-    } else {
+    if (aleatorios.length > 0) {
         invDiv.innerHTML += `
             <table class="tabla-aud">
                 <tr>
@@ -299,8 +306,11 @@ function renderInventario(lista){
                 `).join("")}
             </table>
         `;
+    } else {
+        invDiv.innerHTML += `<p style="opacity:.8;">Sin productos aleatorios.</p>`;
     }
 }
+
 cargarDetalle();
 </script>
 

@@ -12,7 +12,6 @@
 :root{
     --azul1:#00416A;
     --azul2:#0c6cbd;
-    --blanco:#ffffff;
 }
 
 /* FONDO */
@@ -21,9 +20,7 @@ body{
     font-family:'Poppins',sans-serif;
     min-height:100vh;
     background: linear-gradient(140deg, var(--azul1), var(--azul2));
-    padding:20px;
-    padding-bottom:60px;
-    position:relative;
+    padding:20px 20px 60px 20px;
     color:white;
 }
 
@@ -36,73 +33,35 @@ body{
     width:600px;
     opacity:0.07;
     pointer-events:none;
-    z-index:0;
 }
 
 /* TITULO */
 h2{
     text-align:center;
     font-size:32px;
-    font-weight:600;
-    margin-top:15px;
-    margin-bottom:25px;
-    color:white;
+    margin-bottom:20px;
     text-shadow:0 4px 10px rgba(0,0,0,.35);
 }
 
-/* TARJETAS */
+/* CARD CONTENEDORES */
 .card{
     background:rgba(255,255,255,0.15);
-    backdrop-filter:blur(14px);
-    padding:22px;
-    border-radius:16px;
+    backdrop-filter:blur(12px);
+    padding:20px;
+    border-radius:14px;
     margin:20px auto;
     max-width:900px;
     box-shadow:0 8px 28px rgba(0,0,0,.35);
-    animation:fadeUp .6s ease;
-    color:white;
 }
 
-.card h3{
-    margin-top:0;
-    font-size:22px;
-    color:white;
-}
-
-/* TITULOS SECCION */
 .section-title{
     font-size:24px;
     font-weight:600;
     margin-top:40px;
-    text-shadow:0 3px 10px rgba(0,0,0,.30);
 }
 
-/* LISTA INVENTARIO */
-#invList.grid{
-    display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
-    gap:18px;
-    margin-top:18px;
-}
-
-.card-item{
-    background:rgba(255,255,255,0.18);
-    backdrop-filter:blur(12px);
-    padding:16px;
-    border-radius:14px;
-    box-shadow:0 5px 18px rgba(0,0,0,.30);
-    font-size:15px;
-    color:white;
-    animation:fadeUp .6s ease;
-}
-
-/* ANIMACIÓN */
-@keyframes fadeUp{
-    from{ opacity:0; transform:translateY(20px); }
-    to{ opacity:1; transform:translateY(0px); }
-}
-/* NUEVA TABLA INVENTARIO */
-.tabla-aud {
+/* TABLAS */
+.tabla-aud{
     width:100%;
     border-collapse:collapse;
     margin-top:12px;
@@ -110,74 +69,86 @@ h2{
     color:#222;
     border-radius:10px;
     overflow:hidden;
-    box-shadow:0 4px 12px rgba(0,0,0,.25);
 }
 
-.tabla-aud th {
+.tabla-aud th{
     background:#00416A;
     color:white;
     padding:10px;
-    font-size:14px;
 }
 
-.tabla-aud td {
+.tabla-aud td{
     padding:8px;
-    border-bottom:1px solid #ddd;
     text-align:center;
-    font-size:14px;
+    border-bottom:1px solid #ddd;
 }
 
-.tabla-seccion {
-    background:rgba(255,255,255,0.20);
-    color:white;
-    font-weight:bold;
-    padding:6px 10px;
-    margin-top:18px;
-    margin-bottom:6px;
-    border-radius:10px;
+/* BOTON PDF */
+#btnPDF{
+    width:100%;
+    max-width:300px;
+    padding:15px;
+    background:white;
+    color:#00416A;
+    font-weight:600;
+    border:none;
+    border-radius:12px;
+    margin:25px auto;
+    display:block;
+    cursor:pointer;
+    font-size:17px;
+    box-shadow:0 5px 12px rgba(0,0,0,.25);
+}
+
+#btnPDF:hover{
+    background:#e1e1e1;
 }
 </style>
-
 </head>
 
 <body>
 
-<!-- Marca de agua -->
 <img src="logo_proveedora.webp" class="watermark">
 
 <h2>Detalle de Auditoría</h2>
 
 <div id="contenido"></div>
 
-<!-- Inventario -->
-<h3 class="section-title">Inventario</h3>
-<div id="invList" class="grid"></div>
+<h3 class="section-title">Inventario Fijo</h3>
+<div id="invFijo"></div>
 
-<!-- Caducidades -->
+<h3 class="section-title">Inventario Aleatorio</h3>
+<div id="invAlea"></div>
+
 <h3 class="section-title">Caducidades</h3>
 <div id="cadList" class="card"></div>
 
-<!-- Devoluciones -->
 <h3 class="section-title">Devoluciones</h3>
 <div id="devList" class="card"></div>
 
-<!-- Incidencias -->
 <h3 class="section-title">Incidencias</h3>
 <div id="incList" class="card"></div>
 
-<!-- Sugerencias -->
 <h3 class="section-title">Sugerencias</h3>
 <div id="sugList" class="card"></div>
 
 <h3 class="section-title">Preguntas y Respuestas</h3>
 <div id="qaList" class="card"></div>
 
+<h3 class="section-title">Firma del Encargado</h3>
+<div id="firmaDiv" class="card"></div>
+
+<button id="btnPDF">Generar PDF</button>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
 <script type="module">
 import { db } from "./firebase.js";
-import { doc, getDoc } 
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* Validación login */
+/* Autorización */
 if(localStorage.getItem("admin_login")!=="true"){
     window.location="admin_login.html";
 }
@@ -185,145 +156,123 @@ if(localStorage.getItem("admin_login")!=="true"){
 const id = localStorage.getItem("admin_last_id");
 const sucursal = localStorage.getItem("admin_last_sucursal");
 
-/* ===========================================================
+/* ============================================
    CARGAR DETALLE
-   =========================================================== */
+   ============================================ */
 async function cargarDetalle(){
 
-    if(!sucursal){
-        document.getElementById("contenido").innerHTML =
-            "<div class='card'>No se encontró la sucursal.</div>";
-        return;
-    }
-
     const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
-    const regSnap = await getDoc(regRef);
+    const snap = await getDoc(regRef);
 
-    if(!regSnap.exists()){
+    if(!snap.exists()){
         document.getElementById("contenido").innerHTML =
-            "<div class='card'>No se encontró el registro.</div>";
+            "<div class='card'>Registro no encontrado</div>";
         return;
     }
 
-    const x = regSnap.data();
+    const x = snap.data();
 
+    /* DATOS GENERALES */
     document.getElementById("contenido").innerHTML = `
         <div class="card">
             <h3>Datos Generales</h3>
-            <p><b>Nombre:</b> ${x.nombre}</p>
-            <p><b>Usuario:</b> ${x.usuario || "No registrado"}</p>
+            <p><b>Nombre encargado:</b> ${x.nombre}</p>
+            <p><b>Usuario:</b> ${x.usuario}</p>
             <p><b>Sucursal:</b> ${sucursal}</p>
             <p><b>Fecha:</b> ${x.fecha}</p>
         </div>
     `;
 
-    /* Inventario */
-    renderInventario(x.inventario || []);
+    /* INVENTARIO */
+    const fijos = x.inventario.filter(p => p.id.startsWith("fijo_"));
+    const alea = x.inventario.filter(p => !p.id.startsWith("fijo_"));
 
-    /* Caducidades */
+    document.getElementById("invFijo").innerHTML = generarTabla(fijos);
+    document.getElementById("invAlea").innerHTML = generarTabla(alea);
+
+    /* CADUCIDADES */
     document.getElementById("cadList").innerHTML =
-        x.caducidades
-            ? Object.values(x.caducidades).join("<br><br>")
-            : "Sin información";
+        x.caducidades ? Object.values(x.caducidades).join("<br><br>") : "Sin información";
 
-    /* Devoluciones */
+    /* DEVOLUCIONES */
     document.getElementById("devList").innerHTML =
-        x.devoluciones && x.devoluciones.length > 0
-            ? x.devoluciones.map(d=>`
-                <b>${d.descripcion}</b><br>
+        x.devoluciones?.length
+            ? x.devoluciones.map(d => `
+                <p><b>${d.descripcion}</b><br>
                 Código: ${d.codigo}<br>
                 Cantidad: ${d.cantidad}<br>
-                Motivo: ${d.motivo}<br><br>
+                Motivo: ${d.motivo}</p>
             `).join("")
             : "Sin devoluciones";
 
-    /* Incidencias */
-    document.getElementById("incList").innerHTML =
-        x.incidencias || "Sin incidencias";
+    /* INCIDENCIAS */
+    document.getElementById("incList").innerHTML = x.incidencias || "Sin incidencias";
 
-    /* Sugerencias */
-    document.getElementById("sugList").innerHTML =
-        x.sugerencias || "Sin sugerencias";
+    /* SUGERENCIAS */
+    document.getElementById("sugList").innerHTML = x.sugerencias || "Sin sugerencias";
 
-    /* ===========================================================
-       ✔ PREGUNTAS Y RESPUESTAS
-       =========================================================== */
-    if (x.preguntas && x.preguntas.length > 0) {
-        document.getElementById("qaList").innerHTML =
-            x.preguntas.map(q => `
-                <p><b>${q.p}</b><br>→ ${q.r}</p>
-            `).join("");
-    } else {
-        document.getElementById("qaList").innerHTML =
-            "Sin preguntas registradas";
-    }
+    /* PREGUNTAS */
+    document.getElementById("qaList").innerHTML =
+        x.preguntas?.length
+            ? x.preguntas.map(p => `<p><b>${p.p}</b><br>→ ${p.r}</p>`).join("")
+            : "Sin preguntas";
+
+    /* FIRMA */
+    document.getElementById("firmaDiv").innerHTML =
+        `<img src="${x.firma}" style="width:250px; border:2px solid white; border-radius:8px;">`;
+
 }
 
-/* ===========================================================
-   RENDER INVENTARIO
-   =========================================================== */
-function renderInventario(lista){
+/* FORMADOR DE TABLA */
+function generarTabla(arr){
+    if(!arr.length) return "<p>Sin datos</p>";
 
-    const invDiv = document.getElementById("invList");
-    invDiv.innerHTML = "";
-
-    const fijos = lista.filter(p => p.id && p.id.startsWith("fijo_"));
-    const aleatorios = lista.filter(p => !p.id || !p.id.startsWith("fijo_"));
-
-    /* Fijos */
-    invDiv.innerHTML += `
-        <h3 class="section-title" style="margin-top:10px;">Inventario Fijo</h3>
-    `;
-
-    if (fijos.length > 0) {
-        invDiv.innerHTML += `
-            <table class="tabla-aud">
+    return `
+        <table class="tabla-aud">
+            <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+            </tr>
+            ${arr.map(p => `
                 <tr>
-                    <th>Código</th>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                </tr>
-                ${fijos.map(f => `
-                    <tr>
-                        <td>${f.codigo}</td>
-                        <td>${f.concepto}</td>
-                        <td>${f.cantidad}</td>
-                    </tr>
-                `).join("")}
-            </table>
-        `;
-    } else {
-        invDiv.innerHTML += `<p style="opacity:.8;">Sin productos fijos capturados.</p>`;
-    }
-
-    /* Aleatorios */
-    invDiv.innerHTML += `
-        <h3 class="section-title" style="margin-top:40px;">Inventario Aleatorio</h3>
+                    <td>${p.codigo}</td>
+                    <td>${p.concepto}</td>
+                    <td>${p.cantidad}</td>
+                </tr>`).join("")}
+        </table>
     `;
-
-    if (aleatorios.length > 0) {
-        invDiv.innerHTML += `
-            <table class="tabla-aud">
-                <tr>
-                    <th>Código</th>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                </tr>
-                ${aleatorios.map(a => `
-                    <tr>
-                        <td>${a.codigo}</td>
-                        <td>${a.concepto}</td>
-                        <td>${a.cantidad}</td>
-                    </tr>
-                `).join("")}
-            </table>
-        `;
-    } else {
-        invDiv.innerHTML += `<p style="opacity:.8;">Sin productos aleatorios.</p>`;
-    }
 }
 
 cargarDetalle();
+
+/* ============================================================
+   GENERAR PDF
+   ============================================================ */
+document.getElementById("btnPDF").onclick = async ()=>{
+
+    const pdf = new jspdf.jsPDF("p","pt","letter");
+
+    const nombreArchivo = `Auditoria_${sucursal}_${new Date().toLocaleDateString()}.pdf`;
+
+    const contenido = document.body;
+
+    const canvas = await html2canvas(contenido, {scale:2});
+    const img = canvas.toDataURL("image/png");
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgProps = pdf.getImageProperties(img);
+    const ratio = imgProps.height / imgProps.width;
+    const imgHeight = pageWidth * ratio;
+
+    pdf.addImage(img, "PNG", 0, 0, pageWidth, imgHeight);
+
+    pdf.save(nombreArchivo);
+};
+
 </script>
+
 </body>
 </html>

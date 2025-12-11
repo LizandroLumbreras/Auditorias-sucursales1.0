@@ -101,7 +101,41 @@ h2{
     from{ opacity:0; transform:translateY(20px); }
     to{ opacity:1; transform:translateY(0px); }
 }
+/* NUEVA TABLA INVENTARIO */
+.tabla-aud {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:12px;
+    background:white;
+    color:#222;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
+}
 
+.tabla-aud th {
+    background:#00416A;
+    color:white;
+    padding:10px;
+    font-size:14px;
+}
+
+.tabla-aud td {
+    padding:8px;
+    border-bottom:1px solid #ddd;
+    text-align:center;
+    font-size:14px;
+}
+
+.tabla-seccion {
+    background:rgba(255,255,255,0.20);
+    color:white;
+    font-weight:bold;
+    padding:6px 10px;
+    margin-top:18px;
+    margin-bottom:6px;
+    border-radius:10px;
+}
 </style>
 
 </head>
@@ -211,16 +245,62 @@ async function cargarDetalle(){
 
 /* Render inventario */
 function renderInventario(lista){
-    document.getElementById("invList").innerHTML =
-        lista.map(p => `
-            <div class="card-item">
-                <b>${p.concepto}</b><br>
-                <small><b>Código:</b> ${p.codigo}</small><br>
-                <small><b>Cantidad:</b> ${p.cantidad}</small>
-            </div>
-        `).join("");
-}
 
+    const invDiv = document.getElementById("invList");
+    invDiv.innerHTML = "";
+
+    // Detectar fijos y aleatorios
+    const fijos = lista.filter(p => p.id && p.id.startsWith("fijo_"));
+    const aleatorios = lista.filter(p => !p.id || !p.id.startsWith("fijo_"));
+
+    /* ====== TABLA FIJOS ====== */
+    invDiv.innerHTML += `<div class="tabla-seccion">Inventario Fijo</div>`;
+
+    if (fijos.length === 0) {
+        invDiv.innerHTML += `<p style="opacity:.8;">Sin productos fijos capturados.</p>`;
+    } else {
+        invDiv.innerHTML += `
+            <table class="tabla-aud">
+                <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                </tr>
+                ${fijos.map(f => `
+                    <tr>
+                        <td>${f.codigo}</td>
+                        <td>${f.concepto}</td>
+                        <td>${f.cantidad}</td>
+                    </tr>
+                `).join("")}
+            </table>
+        `;
+    }
+
+    /* ====== TABLA ALEATORIOS ====== */
+    invDiv.innerHTML += `<div class="tabla-seccion">Inventario Aleatorio</div>`;
+
+    if (aleatorios.length === 0) {
+        invDiv.innerHTML += `<p style="opacity:.8;">Sin productos aleatorios.</p>`;
+    } else {
+        invDiv.innerHTML += `
+            <table class="tabla-aud">
+                <tr>
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                </tr>
+                ${aleatorios.map(a => `
+                    <tr>
+                        <td>${a.codigo}</td>
+                        <td>${a.concepto}</td>
+                        <td>${a.cantidad}</td>
+                    </tr>
+                `).join("")}
+            </table>
+        `;
+    }
+}
 cargarDetalle();
 </script>
 

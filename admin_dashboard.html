@@ -212,9 +212,11 @@ button:hover{
 
 <script type="module">
 import { db } from "./firebase.js";
-import { collection, getDocs, doc, getDoc, setDoc } 
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+import { 
+    collection, getDocs, doc, getDoc, setDoc,
+    query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    
 /* Validación */
 if(localStorage.getItem("admin_login")!=="true"){
     window.location="admin_login.html";
@@ -246,7 +248,13 @@ async function cargar(){
 
     if(!suc) return;
 
-    const snap = await getDocs(collection(db, `auditorias/${suc}/auditorias_registros`));
+    // Consulta optimizada
+    const q = query(
+        collection(db, `auditorias/${suc}/auditorias_registros`),
+        orderBy("fecha", "desc")
+    );
+
+    const snap = await getDocs(q);
 
     snap.forEach(doc=>{
         const x = doc.data();
@@ -261,6 +269,7 @@ async function cargar(){
         `;
     });
 }
+
 window.cargar = cargar;
 
 /* Ver detalle */

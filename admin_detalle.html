@@ -132,9 +132,6 @@ h2{
 <h3 class="section-title">Sugerencias</h3>
 <div id="sugList" class="card"></div>
 
-<h3 class="section-title">Preguntas y Respuestas</h3>
-<div id="qaList" class="card"></div>
-
 <h3 class="section-title">Firma del Encargado</h3>
 <div id="firmaDiv" class="card"></div>
 
@@ -209,13 +206,7 @@ async function cargarDetalle(){
     document.getElementById("incList").innerHTML = x.incidencias || "Sin incidencias";
 
     /* SUGERENCIAS */
-    document.getElementById("sugList").innerHTML = x.sugerencias || "Sin sugerencias";
-
-    /* PREGUNTAS */
-    document.getElementById("qaList").innerHTML =
-        x.preguntas?.length
-            ? x.preguntas.map(p => `<p><b>${p.p}</b><br>→ ${p.r}</p>`).join("")
-            : "Sin preguntas";
+    document.getElementById("sugList").innerHTML = x.sugerencias || "Sin sugerencias"
 
     /* FIRMA */
     document.getElementById("firmaDiv").innerHTML =

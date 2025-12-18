@@ -120,55 +120,59 @@ for(let i = 0; i < 30; i++){
 <!-- LOGIN -->
 <script type="module">
 import { db } from "./firebase.js";
-import { collection, getDocs } 
-    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+  collection, query, where, getDocs, limit 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 async function login() {
 
-    const userInput = usuario.value.trim();
-    const passInput = password.value.trim();
-    const msg = document.getElementById("msg");
-    msg.style.display = "none";
+  const userInput = usuario.value.trim();
+  const passInput = password.value.trim();
+  const msg = document.getElementById("msg");
+  msg.style.display = "none";
 
-    if (!userInput || !passInput) {
-        msg.textContent = "Completa todos los campos";
-        msg.style.display = "block";
-        return;
-    }
+  if (!userInput || !passInput) {
+    msg.textContent = "Completa todos los campos";
+    msg.style.display = "block";
+    return;
+  }
 
-    const snap = await getDocs(collection(db, "usuarios_ruta"));
-    let usuarioData = null;
+  // ⏱️ Consulta directa (rápida)
+  const q = query(
+    collection(db, "usuarios_ruta"),
+    where("usuario", "==", userInput),
+    where("activo", "==", true),
+    limit(1)
+  );
 
-    snap.forEach(doc => {
-        const x = doc.data();
-        if (
-            x.usuario.toUpperCase() === userInput.toUpperCase() &&
-            x.password === passInput &&
-            x.activo === true
-        ) {
-            usuarioData = x;
-        }
-    });
+  const snap = await getDocs(q);
 
-    if (!usuarioData) {
-        msg.textContent = "Usuario o contraseña incorrectos";
-        msg.style.display = "block";
-        return;
-    }
+  if (snap.empty) {
+    msg.textContent = "Usuario o contraseña incorrectos";
+    msg.style.display = "block";
+    return;
+  }
 
-    localStorage.setItem("aud_nombre", usuarioData.nombre);
-    localStorage.setItem("aud_sucursal", usuarioData.rutaId);
-    localStorage.setItem("aud_usuario", usuarioData.usuario);
+  const usuarioData = snap.docs[0].data();
 
-    const fecha = new Date().toISOString().slice(0,16);
-    localStorage.setItem("aud_fecha", fecha);
+  if (usuarioData.password !== passInput) {
+    msg.textContent = "Usuario o contraseña incorrectos";
+    msg.style.display = "block";
+    return;
+  }
 
-    if (usuarioData.rol === "admin") {
-        localStorage.setItem("admin_login","true");
-        window.location = "admin_dashboard.html";
-    } else {
-        window.location = "inventario.html";
-    }
+  // 🔐 Persistencia local
+  localStorage.setItem("aud_nombre", usuarioData.nombre);
+  localStorage.setItem("aud_sucursal", usuarioData.rutaId);
+  localStorage.setItem("aud_usuario", usuarioData.usuario);
+  localStorage.setItem("aud_fecha", new Date().toISOString().slice(0,16));
+
+  if (usuarioData.rol === "admin") {
+    localStorage.setItem("admin_login","true");
+    window.location.replace("admin_dashboard.html");
+  } else {
+    window.location.replace("inventario.html");
+  }
 }
 
 window.login = login;

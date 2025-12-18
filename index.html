@@ -179,14 +179,20 @@ window.login = login;
 </script>
 
 <!-- REGISTRO SW -->
+<!-- REGISTRO SW OPTIMIZADO -->
 <script>
 if ("serviceWorker" in navigator) {
-navigator.serviceWorker.register("../firebase-messaging-sw.js")
-  .then(() => console.log("SW registrado correctamente"))
-  .catch(err => console.error("Error registrando SW:", err));
+  navigator.serviceWorker.getRegistration()
+    .then(registro => {
+      if (!registro) {
+        navigator.serviceWorker
+          .register("../firebase-messaging-sw.js")
+          .then(() => console.log("SW registrado correctamente"))
+          .catch(err => console.error("Error registrando SW:", err));
+      }
+    });
 }
 </script>
-
 <!-- TOKEN FCM CORRECTO MODULAR -->
 <script type="module">
 import { db, messaging } from "./firebase.js";
@@ -215,7 +221,10 @@ async function registrarTokenFCM() {
   }
 }
 
-registrarTokenFCM();
+const tokenGuardado = localStorage.getItem("fcm_token");
+if (!tokenGuardado) {
+  registrarTokenFCM();
+}
 </script>
 
 </body>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Crear Auditoría</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --azul1:#00416A;
+  --azul2:#0c6cbd;
+  --blanco:#ffffff;
+}
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:linear-gradient(135deg,var(--azul1),var(--azul2));
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.card{
+  width:90%;
+  max-width:480px;
+  background:rgba(255,255,255,0.18);
+  backdrop-filter:blur(14px);
+  border-radius:18px;
+  padding:30px;
+  color:white;
+}
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+label{
+  font-size:14px;
+}
+select, button{
+  width:100%;
+  padding:14px;
+  margin-top:10px;
+  border-radius:12px;
+  border:none;
+}
+button{
+  margin-top:25px;
+  background:var(--blanco);
+  color:var(--azul1);
+  font-weight:600;
+  cursor:pointer;
+}
+.msg{
+  margin-top:15px;
+  text-align:center;
+  display:none;
+  padding:10px;
+  border-radius:10px;
+}
+.error{
+  background:rgba(255,0,0,.25);
+}
+.ok{
+  background:rgba(0,255,0,.25);
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Crear Auditoría</h2>
+
+  <label>Sucursal (encargado):</label>
+  <select id="sucursalSelect">
+    <option value="">Cargando sucursales...</option>
+  </select>
+
+  <button onclick="crearAuditoria()">Crear Auditoría</button>
+
+  <div id="msg" class="msg"></div>
+</div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import {
+  collection, getDocs, query, where,
+  doc, runTransaction, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* 🔐 Protección ADMIN */
+if (localStorage.getItem("admin_login") !== "true") {
+  window.location.replace("admin_login.html");
+}
+
+/* 📥 Cargar sucursales desde usuarios_ruta */
+const sucursalSelect = document.getElementById("sucursalSelect");
+
+async function cargarSucursales(){
+  const q = query(
+    collection(db, "usuarios_ruta"),
+    where("activo","==",true)
+  );
+
+  const snap = await getDocs(q);
+  sucursalSelect.innerHTML = `<option value="">Selecciona sucursal</option>`;
+
+  snap.forEach(docu => {
+    const d = docu.data();
+    if(!d.rutaId) return;
+
+    const opt = document.createElement("option");
+    opt.value = d.rutaId;
+    opt.textContent = `${d.rutaId} – ${d.nombre || d.usuario}`;
+    sucursalSelect.appendChild(opt);
+  });
+}
+
+cargarSucursales();
+
+/* 🆔 Crear auditoría con ID automático */
+async function crearAuditoria(){
+  const sucursal = sucursalSelect.value;
+  const msg = document.getElementById("msg");
+  msg.style.display = "none";
+
+  if(!sucursal){
+    msg.textContent = "Selecciona una sucursal";
+    msg.className = "msg error";
+    msg.style.display = "block";
+    return;
+  }
+
+  try{
+    const ahora = new Date();
+    const year = ahora.getFullYear();
+    const month = String(ahora.getMonth()+1).padStart(2,"0");
+
+    const contadorRef = doc(db,"config","contador_auditorias");
+
+    let auditoriaId = "";
+
+    await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(contadorRef);
+      let ultimo = 0;
+
+      if(snap.exists()){
+        ultimo = snap.data().ultimo || 0;
+      }
+
+      const nuevo = ultimo + 1;
+      const consecutivo = String(nuevo).padStart(5,"0");
+
+      auditoriaId = `AUD-${year}-${month}-${consecutivo}`;
+
+      tx.set(doc(db,"auditorias",auditoriaId),{
+        id: auditoriaId,
+        sucursal,
+        fecha_creacion: serverTimestamp(),
+        estado: "esperando_inventario",
+        creada_por: "admin"
+      });
+
+      tx.set(contadorRef,{ ultimo: nuevo },{ merge:true });
+    });
+
+    /* 🔗 Persistir contexto */
+    localStorage.setItem("auditoria_id", auditoriaId);
+    localStorage.setItem("auditoria_sucursal", sucursal);
+
+    msg.textContent = `Auditoría creada: ${auditoriaId}`;
+    msg.className = "msg ok";
+    msg.style.display = "block";
+
+    setTimeout(()=>{
+      window.location.replace("inventario.html");
+    },1200);
+
+  }catch(err){
+    console.error(err);
+    msg.textContent = "Error creando auditoría";
+    msg.className = "msg error";
+    msg.style.display = "block";
+  }
+}
+
+window.crearAuditoria = crearAuditoria;
+</script>
+
+</body>
+</html>

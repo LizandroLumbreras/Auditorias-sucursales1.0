@@ -177,6 +177,13 @@ button:hover{
 
 <div id="lista"></div>
 
+        <!-- 🆕 CREAR NUEVA AUDITORÍA -->
+<div class="card-fijo" onclick="irCrearAuditoria()">
+    <h3>🧾 Crear nueva auditoría</h3>
+    <p style="opacity:.8;">
+        Iniciar auditoría con inventario inicial por sucursal
+    </p>
+</div>
 <!-- TARJETA INVENTARIO FIJO -->
 <div class="card-fijo" onclick="location.href='admin_fijos.html'">
     <h3>Inventario Fijo (Auditoría)</h3>
@@ -327,6 +334,20 @@ document.getElementById("btnAviso").addEventListener("click", async () => {
     }
 });
 
+window.irCrearAuditoria = () => {
+    if (localStorage.getItem("auditoria_id")) {
+        const seguir = confirm(
+            "Ya hay una auditoría activa.\n¿Deseas iniciar una nueva?"
+        );
+        if (!seguir) return;
+    }
+
+    localStorage.removeItem("auditoria_id");
+    localStorage.removeItem("auditoria_sucursal");
+
+    window.location.href = "auditorias_inicio.html";
+};
+    
 </script>
 <script>
 if ("serviceWorker" in navigator) {

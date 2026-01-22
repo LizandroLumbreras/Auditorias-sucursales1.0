@@ -151,7 +151,11 @@ h2{
 
   <p id="msgTeorico" style="margin-top:10px;font-weight:600;"></p>
 </div>
-
+    
+<button id="btnRecalcular" style="display:none; margin-top:10px;">
+  Recalcular inventario teórico
+</button>
+    
 <button id="btnPDF">Generar PDF</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
@@ -186,9 +190,14 @@ if(!snap.exists()){
 
 const x = snap.data();
 
-    if(x.estado === "teorico_calculado" || x.estado === "validado"){
+if(x.estado === "teorico_calculado"){
+    document.getElementById("btnRecalcular").style.display = "block";
+}
+
+if(x.estado === "validado"){
     document.getElementById("bloqueTeorico").style.display = "none";
 }
+
     
     /* DATOS GENERALES */
     document.getElementById("contenido").innerHTML = `

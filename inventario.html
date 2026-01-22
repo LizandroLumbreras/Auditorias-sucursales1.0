@@ -133,15 +133,20 @@ h3{
 
 <div class="contenedor">
 
-<h2>Captura de Auditoría</h2>
+<h2 id="tituloAuditoria">Captura de Auditoría</h2>
 
 <div id="lista"></div>
 
 <button onclick="finalizar()">Finalizar</button>
 
 </div> <!-- FIN CONTENEDOR -->
-
+    
 <script type="module">
+const modoFisico2 = localStorage.getItem("aud_modo") === "fisico_2";
+    if (modoFisico2) {
+    document.getElementById("tituloAuditoria").textContent =
+        "Revisión Física 2 (Validación)";
+}
 
 import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
 import { collection, getDocs, doc, getDoc }

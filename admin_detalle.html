@@ -310,28 +310,31 @@ function leerTXT(file){
 }
 // Espera formato: CODIGO|CANTIDAD (una línea por registro)
 
-    function parsearVentasReporte(texto){
+function parsearVentasReporte(texto){
     const mapa = {};
 
     texto.split(/\r?\n/).forEach(l => {
 
-        // Ignorar encabezados y basura
-        if (!l.match(/\d{2}\/\d{2}\/\d{4}/)) return;
+        // Debe iniciar con fecha
+        if (!l.match(/^\d{2}\/\d{2}\/\d{4}/)) return;
 
         const partes = l.trim().split(/\s+/);
 
-        // Según tu TXT real
-        const codigo = partes[2];
-        const cantidad = Number(partes[4]);
+        // Código: siempre es numérico largo
+        const codigo = partes.find(p => /^\d{6,}$/.test(p));
+
+        // Cantidad: primer número con decimales tipo 10.0000
+        const cantidadStr = partes.find(p => /^\d+\.\d+$/.test(p));
+        const cantidad = Number(cantidadStr);
 
         if (!codigo || isNaN(cantidad)) return;
 
-        // Ventas vienen negativas → usamos valor absoluto
-        mapa[codigo] = (mapa[codigo] || 0) + Math.abs(cantidad);
+        mapa[codigo] = (mapa[codigo] || 0) + cantidad;
     });
 
     return mapa;
 }
+
 function parsearTransferenciasReporte(texto){
     const mapa = {};
 

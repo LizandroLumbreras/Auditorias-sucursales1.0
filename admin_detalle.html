@@ -120,6 +120,9 @@ h2{
 <h3 class="section-title">Inventario Aleatorio</h3>
 <div id="invAlea"></div>
 
+<h3 class="section-title">Inventario Teórico</h3>
+<div id="invTeorico"></div>
+
 <h3 class="section-title">Caducidades</h3>
 <div id="cadList" class="card"></div>
 
@@ -206,6 +209,23 @@ const alea  = inventario.filter(p => !p.id?.startsWith("fijo_"));
 
     document.getElementById("invFijo").innerHTML = generarTabla(fijos);
     document.getElementById("invAlea").innerHTML = generarTabla(alea);
+
+    /* INVENTARIO TEÓRICO (si existe) */
+const invTeo = Array.isArray(x.inventario_teorico) ? x.inventario_teorico : [];
+
+if(invTeo.length){
+    // Reutilizamos tu tabla: (usa "teorico" como cantidad)
+    const teoParaTabla = invTeo.map(p=>({
+        codigo: p.codigo,
+        concepto: p.concepto,
+        cantidad: p.teorico
+    }));
+
+    document.getElementById("invTeorico").innerHTML = generarTabla(teoParaTabla);
+}else{
+    document.getElementById("invTeorico").innerHTML = "<p>Sin inventario teórico calculado.</p>";
+}
+
 
 /* CADUCIDADES — MUESTRA PREGUNTAS + RESPUESTAS */
 let cad = x.caducidades;
@@ -393,6 +413,9 @@ document.getElementById("btnCalcular").onclick = async ()=>{
         });
 
         msg.textContent = "Inventario teórico calculado y guardado.";
+        // Recargar para que ya se vea la sección de Inventario Teórico
+setTimeout(()=> location.reload(), 600);
+
     }catch(err){
         console.error(err);
         msg.textContent = "Error al procesar archivos.";

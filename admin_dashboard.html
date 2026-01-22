@@ -242,6 +242,13 @@ const normalizarSucursal = (txt) => {
 
     return mapa[txt.trim().toUpperCase()] || null;
 };
+    
+function badgeEstado(estado){
+    if(estado==="fisico_capturado") return "🟡 Pendiente de cálculo";
+    if(estado==="teorico_calculado") return "🔵 Teórico calculado";
+    if(estado==="validado") return "🟢 Auditoría cerrada";
+    return "⚪ Sin estado";
+}
 
 /* Cargar auditorías */
 async function cargar(){
@@ -253,21 +260,46 @@ async function cargar(){
 
     if(!suc) return;
 
-    const snap = await getDocs(collection(db, `auditorias/${suc}/auditorias_registros`));
+    // 1️⃣ Obtener documentos
+    const snap = await getDocs(
+        collection(db, `auditorias/${suc}/auditorias_registros`)
+    );
 
-    snap.forEach(doc=>{
-        const x = doc.data();
+    // 2️⃣ Pasarlos a arreglo
+    const auditorias = [];
+    snap.forEach(d => {
+        auditorias.push({
+            id: d.id,
+            ...d.data()
+        });
+    });
 
+    // 3️⃣ Ordenar por estado
+    auditorias.sort((a, b) => {
+        const orden = {
+            fisico_capturado: 1,
+            teorico_calculado: 2,
+            validado: 3
+        };
+        return (orden[a.estado] || 99) - (orden[b.estado] || 99);
+    });
+
+    // 4️⃣ Pintar la lista (ESTE ERA EL PASO QUE TE FALTABA)
+    auditorias.forEach(x => {
         lista.innerHTML += `
             <div class="card">
-                <h3>${x.nombre}</h3>
-                <p><b>Fecha:</b> ${x.fecha}</p>
-                <p><b>Usuario:</b> ${x.usuario}</p>
-                <button onclick='ver("${suc}","${doc.id}")'>Ver detalles</button>
+                <h3>${x.nombre || "Auditoría"}</h3>
+                <p><b>Fecha:</b> ${x.fecha || ""}</p>
+                <p><b>Usuario:</b> ${x.usuario || ""}</p>
+                <p><b>Estado:</b> ${badgeEstado(x.estado)}</p>
+                <button onclick='ver("${suc}","${x.id}")'>
+                    Ver detalles
+                </button>
             </div>
         `;
     });
 }
+
 window.cargar = cargar;
 
 /* Ver detalle */

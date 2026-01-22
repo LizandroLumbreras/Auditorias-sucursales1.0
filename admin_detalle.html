@@ -148,21 +148,9 @@ h2{
 
   <p id="msgTeorico" style="margin-top:10px;font-weight:600;"></p>
 </div>
-<h3 class="section-title">Segunda Visita — Inventario Físico 2</h3>
-
-<div class="card" id="bloqueFisico2">
-  <p>Captura las cantidades físicas observadas en la segunda visita.</p>
-  <div id="tablaFisico2"></div>
-
-  <button id="btnComparar">Comparar y cerrar auditoría</button>
-  <p id="msgCierre" style="margin-top:10px;font-weight:600;"></p>
-</div>
 
 <button id="btnPDF">Generar PDF</button>
 
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
@@ -187,28 +175,18 @@ async function cargarDetalle(){
     const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
     const snap = await getDoc(regRef);
 
-    if(!snap.exists()){
-        document.getElementById("contenido").innerHTML =
-            "<div class='card'>Registro no encontrado</div>";
-        return;
-    }
-
-    const x = snap.data();
-    // Mostrar Físico 2 solo cuando el teórico ya esté calculado
-if(x.estado === "teorico_calculado"){
-    document.getElementById("tablaFisico2").innerHTML =
-        tablaFisico2Editable(x.inventario_teorico || []);
-}else{
-    const b2 = document.getElementById("bloqueFisico2");
-    if(b2) b2.style.display = "none";
+if(!snap.exists()){
+    document.getElementById("contenido").innerHTML =
+        "<div class='card'>Registro no encontrado</div>";
+    return;
 }
 
+const x = snap.data();
 
     if(x.estado === "teorico_calculado" || x.estado === "validado"){
-    const b = document.getElementById("bloqueTeorico");
-    if(b) b.style.display = "none";
+    document.getElementById("bloqueTeorico").style.display = "none";
 }
-
+    
     /* DATOS GENERALES */
     document.getElementById("contenido").innerHTML = `
         <div class="card">
@@ -221,8 +199,10 @@ if(x.estado === "teorico_calculado"){
     `;
 
     /* INVENTARIO */
-    const fijos = x.inventario.filter(p => p.id.startsWith("fijo_"));
-    const alea = x.inventario.filter(p => !p.id.startsWith("fijo_"));
+const inventario = Array.isArray(x.inventario) ? x.inventario : [];
+
+const fijos = inventario.filter(p => p.id?.startsWith("fijo_"));
+const alea  = inventario.filter(p => !p.id?.startsWith("fijo_"));
 
     document.getElementById("invFijo").innerHTML = generarTabla(fijos);
     document.getElementById("invAlea").innerHTML = generarTabla(alea);
@@ -293,7 +273,7 @@ function generarTabla(arr){
                 <tr>
                     <td>${p.codigo}</td>
                     <td>${p.concepto}</td>
-                    <td>${p.cantidad}</td>
+                    <td>${p.cantidad ?? p.fisico_1 ?? p.teorico ?? 0}</td>
                 </tr>`).join("")}
         </table>
     `;
@@ -308,46 +288,54 @@ function leerTXT(file){
         reader.readAsText(file);
     });
 }
-function tablaFisico2Editable(invTeorico){
-    if(!invTeorico.length) return "<p>Sin inventario teórico</p>";
-
-    return `
-      <table class="tabla-aud">
-        <tr>
-          <th>Código</th>
-          <th>Producto</th>
-          <th>Teórico</th>
-          <th>Físico 2</th>
-        </tr>
-        ${invTeorico.map(p=>`
-          <tr>
-            <td>${p.codigo}</td>
-            <td>${p.concepto}</td>
-            <td>${p.teorico}</td>
-            <td>
-              <input type="number" step="any"
-                     data-codigo="${p.codigo}"
-                     placeholder="0">
-            </td>
-          </tr>
-        `).join("")}
-      </table>
-    `;
-}
-
 // Espera formato: CODIGO|CANTIDAD (una línea por registro)
-function parsearPipeTXT(texto){
+
+    function parsearVentasReporte(texto){
     const mapa = {};
-    texto.split(/\r?\n/).forEach(l=>{
-        if(!l.trim()) return;
-        const [codigo, cant] = l.split("|").map(s=>s.trim());
-        const n = Number(cant);
-        if(codigo && !isNaN(n)){
-            mapa[codigo] = (mapa[codigo] || 0) + n;
-        }
+
+    texto.split(/\r?\n/).forEach(l => {
+
+        // Ignorar encabezados y basura
+        if (!l.match(/\d{2}\/\d{2}\/\d{4}/)) return;
+
+        const partes = l.trim().split(/\s+/);
+
+        // Según tu TXT real
+        const codigo = partes[2];
+        const cantidad = Number(partes[4]);
+
+        if (!codigo || isNaN(cantidad)) return;
+
+        // Ventas vienen negativas → usamos valor absoluto
+        mapa[codigo] = (mapa[codigo] || 0) + Math.abs(cantidad);
     });
+
     return mapa;
 }
+function parsearTransferenciasReporte(texto){
+    const mapa = {};
+
+    texto.split(/\r?\n/).forEach(l => {
+
+        // Solo líneas que inician con fecha
+        if (!l.match(/^\d{2}\/\d{2}\/\d{4}/)) return;
+
+        // Separar por espacios múltiples
+        const partes = l.trim().split(/\s+/);
+
+        // Según el reporte real
+        const codigo = partes[1];
+        const cantidad = Number(partes.find(p => p.includes(".") && !isNaN(p)));
+
+        if (!codigo || isNaN(cantidad)) return;
+
+        // Transferencias SOLO ENTRADAS
+        mapa[codigo] = (mapa[codigo] || 0) + cantidad;
+    });
+
+    return mapa;
+}
+
 document.getElementById("btnCalcular").onclick = async ()=>{
     const msg = document.getElementById("msgTeorico");
     msg.textContent = "Procesando...";
@@ -366,8 +354,8 @@ document.getElementById("btnCalcular").onclick = async ()=>{
             leerTXT(fTrans)
         ]);
 
-        const ventasMap = parsearPipeTXT(txtV);
-        const transMap  = parsearPipeTXT(txtT); // SOLO ENTRADAS
+        const ventasMap = parsearVentasReporte(txtV);
+        const transMap = parsearTransferenciasReporte(txtT);
 
         // Releer auditoría actual
         const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
@@ -409,59 +397,6 @@ document.getElementById("btnCalcular").onclick = async ()=>{
         console.error(err);
         msg.textContent = "Error al procesar archivos.";
     }
-};
-    document.getElementById("btnComparar").onclick = async ()=>{
-    const msg = document.getElementById("msgCierre");
-    msg.textContent = "Comparando...";
-
-    const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
-    const snap = await getDoc(regRef);
-    if(!snap.exists()){
-        msg.textContent = "Auditoría no encontrada.";
-        return;
-    }
-
-    const data = snap.data();
-    const invTeorico = data.inventario_teorico || [];
-
-    // Leer valores capturados
-    const inputs = document.querySelectorAll(
-        '#tablaFisico2 input[data-codigo]'
-    );
-
-    const fisico2Map = {};
-    inputs.forEach(i=>{
-        const codigo = i.dataset.codigo;
-        const val = Number(i.value);
-        fisico2Map[codigo] = isNaN(val) ? 0 : val;
-    });
-
-    const inventario_fisico_2 = invTeorico.map(p=>({
-        codigo: p.codigo,
-        concepto: p.concepto,
-        cantidad: fisico2Map[p.codigo] || 0
-    }));
-
-    const diferencias = invTeorico.map(p=>{
-        const f2 = fisico2Map[p.codigo] || 0;
-        return {
-            codigo: p.codigo,
-            concepto: p.concepto,
-            teorico: p.teorico,
-            fisico_2: f2,
-            diferencia: f2 - p.teorico
-        };
-    });
-
-    await updateDoc(regRef, {
-        inventario_fisico_2,
-        diferencias,
-        estado: "validado",
-        validado_en: new Date().toISOString()
-    });
-
-    msg.textContent = "Auditoría cerrada correctamente.";
-    document.getElementById("btnComparar").disabled = true;
 };
 
 /* ============================================================
@@ -517,7 +452,7 @@ document.getElementById("btnPDF").onclick = async ()=>{
                     ...arr.map(p => [
                         p.codigo,
                         p.concepto,
-                        p.cantidad.toString()
+                        (p.cantidad ?? p.fisico_1 ?? p.teorico ?? 0).toString()
                     ])
                 ]
             },

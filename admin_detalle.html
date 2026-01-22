@@ -135,6 +135,20 @@ h2{
 <h3 class="section-title">Firma del Encargado</h3>
 <div id="firmaDiv" class="card"></div>
 
+    <h3 class="section-title">Cálculo de Inventario Teórico (Admin)</h3>
+
+<div class="card" id="bloqueTeorico">
+  <p><b>1) Subir ventas (TXT |):</b></p>
+  <input type="file" id="fileVentas" accept=".txt"><br><br>
+
+  <p><b>2) Subir transferencias (TXT | – solo entradas):</b></p>
+  <input type="file" id="fileTrans" accept=".txt"><br><br>
+
+  <button id="btnCalcular">Calcular inventario teórico</button>
+
+  <p id="msgTeorico" style="margin-top:10px;font-weight:600;"></p>
+</div>
+
 <button id="btnPDF">Generar PDF</button>
 
 
@@ -146,7 +160,7 @@ h2{
 
 <script type="module">
 import { db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* Autorización */
 if(localStorage.getItem("admin_login")!=="true"){
@@ -171,6 +185,11 @@ async function cargarDetalle(){
     }
 
     const x = snap.data();
+
+    if(x.estado === "teorico_calculado" || x.estado === "validado"){
+    const b = document.getElementById("bloqueTeorico");
+    if(b) b.style.display = "none";
+}
 
     /* DATOS GENERALES */
     document.getElementById("contenido").innerHTML = `
@@ -263,7 +282,90 @@ function generarTabla(arr){
 }
 
 cargarDetalle();
+function leerTXT(file){
+    return new Promise((resolve, reject)=>{
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+    });
+}
 
+// Espera formato: CODIGO|CANTIDAD (una línea por registro)
+function parsearPipeTXT(texto){
+    const mapa = {};
+    texto.split(/\r?\n/).forEach(l=>{
+        if(!l.trim()) return;
+        const [codigo, cant] = l.split("|").map(s=>s.trim());
+        const n = Number(cant);
+        if(codigo && !isNaN(n)){
+            mapa[codigo] = (mapa[codigo] || 0) + n;
+        }
+    });
+    return mapa;
+}
+document.getElementById("btnCalcular").onclick = async ()=>{
+    const msg = document.getElementById("msgTeorico");
+    msg.textContent = "Procesando...";
+
+    const fVentas = document.getElementById("fileVentas").files[0];
+    const fTrans  = document.getElementById("fileTrans").files[0];
+
+    if(!fVentas || !fTrans){
+        msg.textContent = "Sube ambos archivos TXT.";
+        return;
+    }
+
+    try{
+        const [txtV, txtT] = await Promise.all([
+            leerTXT(fVentas),
+            leerTXT(fTrans)
+        ]);
+
+        const ventasMap = parsearPipeTXT(txtV);
+        const transMap  = parsearPipeTXT(txtT); // SOLO ENTRADAS
+
+        // Releer auditoría actual
+        const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
+        const snap = await getDoc(regRef);
+        if(!snap.exists()){
+            msg.textContent = "Auditoría no encontrada.";
+            return;
+        }
+
+        const data = snap.data();
+        const invFisico = data.inventario || [];
+
+        // Calcular teórico por código
+        const inventario_teorico = invFisico.map(p=>{
+            const v = ventasMap[p.codigo] || 0;
+            const t = transMap[p.codigo] || 0;
+            const teorico = Number(p.cantidad || 0) - v + t;
+            return {
+                codigo: p.codigo,
+                concepto: p.concepto,
+                fisico_1: Number(p.cantidad || 0),
+                ventas: v,
+                transferencias: t,
+                teorico
+            };
+        });
+
+        // Guardar resultados
+        await updateDoc(regRef, {
+            ventas: ventasMap,
+            transferencias: transMap,
+            inventario_teorico,
+            estado: "teorico_calculado",
+            teorico_calculado_en: new Date().toISOString()
+        });
+
+        msg.textContent = "Inventario teórico calculado y guardado.";
+    }catch(err){
+        console.error(err);
+        msg.textContent = "Error al procesar archivos.";
+    }
+};
 /* ============================================================
       GENERAR PDF PROFESIONAL — PDF REAL (NO IMAGEN)
 ============================================================ */

@@ -148,6 +148,15 @@ h2{
 
   <p id="msgTeorico" style="margin-top:10px;font-weight:600;"></p>
 </div>
+<h3 class="section-title">Segunda Visita — Inventario Físico 2</h3>
+
+<div class="card" id="bloqueFisico2">
+  <p>Captura las cantidades físicas observadas en la segunda visita.</p>
+  <div id="tablaFisico2"></div>
+
+  <button id="btnComparar">Comparar y cerrar auditoría</button>
+  <p id="msgCierre" style="margin-top:10px;font-weight:600;"></p>
+</div>
 
 <button id="btnPDF">Generar PDF</button>
 
@@ -185,6 +194,15 @@ async function cargarDetalle(){
     }
 
     const x = snap.data();
+    // Mostrar Físico 2 solo cuando el teórico ya esté calculado
+if(x.estado === "teorico_calculado"){
+    document.getElementById("tablaFisico2").innerHTML =
+        tablaFisico2Editable(x.inventario_teorico || []);
+}else{
+    const b2 = document.getElementById("bloqueFisico2");
+    if(b2) b2.style.display = "none";
+}
+
 
     if(x.estado === "teorico_calculado" || x.estado === "validado"){
     const b = document.getElementById("bloqueTeorico");
@@ -290,6 +308,32 @@ function leerTXT(file){
         reader.readAsText(file);
     });
 }
+function tablaFisico2Editable(invTeorico){
+    if(!invTeorico.length) return "<p>Sin inventario teórico</p>";
+
+    return `
+      <table class="tabla-aud">
+        <tr>
+          <th>Código</th>
+          <th>Producto</th>
+          <th>Teórico</th>
+          <th>Físico 2</th>
+        </tr>
+        ${invTeorico.map(p=>`
+          <tr>
+            <td>${p.codigo}</td>
+            <td>${p.concepto}</td>
+            <td>${p.teorico}</td>
+            <td>
+              <input type="number" step="any"
+                     data-codigo="${p.codigo}"
+                     placeholder="0">
+            </td>
+          </tr>
+        `).join("")}
+      </table>
+    `;
+}
 
 // Espera formato: CODIGO|CANTIDAD (una línea por registro)
 function parsearPipeTXT(texto){
@@ -366,6 +410,60 @@ document.getElementById("btnCalcular").onclick = async ()=>{
         msg.textContent = "Error al procesar archivos.";
     }
 };
+    document.getElementById("btnComparar").onclick = async ()=>{
+    const msg = document.getElementById("msgCierre");
+    msg.textContent = "Comparando...";
+
+    const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
+    const snap = await getDoc(regRef);
+    if(!snap.exists()){
+        msg.textContent = "Auditoría no encontrada.";
+        return;
+    }
+
+    const data = snap.data();
+    const invTeorico = data.inventario_teorico || [];
+
+    // Leer valores capturados
+    const inputs = document.querySelectorAll(
+        '#tablaFisico2 input[data-codigo]'
+    );
+
+    const fisico2Map = {};
+    inputs.forEach(i=>{
+        const codigo = i.dataset.codigo;
+        const val = Number(i.value);
+        fisico2Map[codigo] = isNaN(val) ? 0 : val;
+    });
+
+    const inventario_fisico_2 = invTeorico.map(p=>({
+        codigo: p.codigo,
+        concepto: p.concepto,
+        cantidad: fisico2Map[p.codigo] || 0
+    }));
+
+    const diferencias = invTeorico.map(p=>{
+        const f2 = fisico2Map[p.codigo] || 0;
+        return {
+            codigo: p.codigo,
+            concepto: p.concepto,
+            teorico: p.teorico,
+            fisico_2: f2,
+            diferencia: f2 - p.teorico
+        };
+    });
+
+    await updateDoc(regRef, {
+        inventario_fisico_2,
+        diferencias,
+        estado: "validado",
+        validado_en: new Date().toISOString()
+    });
+
+    msg.textContent = "Auditoría cerrada correctamente.";
+    document.getElementById("btnComparar").disabled = true;
+};
+
 /* ============================================================
       GENERAR PDF PROFESIONAL — PDF REAL (NO IMAGEN)
 ============================================================ */

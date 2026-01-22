@@ -196,6 +196,7 @@ if(x.estado === "teorico_calculado"){
 
 if(x.estado === "validado"){
     document.getElementById("bloqueTeorico").style.display = "none";
+    document.getElementById("btnRecalcular").style.display = "none";
 }
 
     
@@ -309,6 +310,23 @@ function generarTabla(arr){
 }
 
 cargarDetalle();
+    document.getElementById("btnRecalcular").onclick = async ()=>{
+    if(!confirm("Esto eliminará el inventario teórico. ¿Deseas continuar?")) return;
+
+    const regRef = doc(db, `auditorias/${sucursal}/auditorias_registros/${id}`);
+
+    await updateDoc(regRef, {
+        estado: "fisico_capturado",
+        ventas: {},
+        transferencias: {},
+        inventario_teorico: [],
+        teorico_calculado_en: null
+    });
+
+    alert("Inventario teórico reiniciado. Vuelve a cargar los archivos.");
+    location.reload();
+};
+
 function leerTXT(file){
     return new Promise((resolve, reject)=>{
         const reader = new FileReader();
@@ -401,19 +419,22 @@ document.getElementById("btnCalcular").onclick = async ()=>{
         const invFisico = data.inventario || [];
 
         // Calcular teórico por código
-        const inventario_teorico = invFisico.map(p=>{
-            const v = ventasMap[p.codigo] || 0;
-            const t = transMap[p.codigo] || 0;
-            const teorico = Number(p.cantidad || 0) - v + t;
-            return {
-                codigo: p.codigo,
-                concepto: p.concepto,
-                fisico_1: Number(p.cantidad || 0),
-                ventas: v,
-                transferencias: t,
-                teorico
-            };
-        });
+const inventario_teorico = invFisico.map(p=>{
+    const v = ventasMap[p.codigo] || 0;
+    const t = transMap[p.codigo] || 0;
+
+    const fisico1 = Number(p.cantidad ?? p.fisico_1 ?? 0);
+    const teorico = fisico1 - v + t;
+
+    return {
+        codigo: p.codigo,
+        concepto: p.concepto,
+        fisico_1: fisico1,
+        ventas: v,
+        transferencias: t,
+        teorico
+    };
+});
 
         // Guardar resultados
         await updateDoc(regRef, {

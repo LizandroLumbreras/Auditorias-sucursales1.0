@@ -342,20 +342,22 @@ function parsearVentasReporte(texto){
 
     texto.split(/\r?\n/).forEach(l => {
 
-        // Debe iniciar con fecha
+        // Solo líneas válidas de venta
         if (!l.match(/^\d{2}\/\d{2}\/\d{4}/)) return;
 
+        // Normalizar espacios
         const partes = l.trim().split(/\s+/);
 
-        // Código: siempre es numérico largo
-        const codigo = partes.find(p => /^\d{6,}$/.test(p));
+        // Código SIEMPRE está en posición 2
+        const codigo = partes[2];
 
-        // Cantidad: primer número con decimales tipo 10.0000
-        const cantidadStr = partes.find(p => /^\d+\.\d+$/.test(p));
-        const cantidad = Number(cantidadStr);
+        // Cantidad vendida SIEMPRE está después del nombre,
+        // y es el PRIMER número decimal grande
+        const cantidad = Number(partes[4]);
 
         if (!codigo || isNaN(cantidad)) return;
 
+        // SUMAR ventas (se restan después)
         mapa[codigo] = (mapa[codigo] || 0) + cantidad;
     });
 

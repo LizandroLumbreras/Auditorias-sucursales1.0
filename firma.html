@@ -110,6 +110,9 @@ button{
    background:#e53935;
    transform:translateY(-2px);
 }
+    canvas{
+  touch-action: none;
+}
 
 </style>
 </head>
@@ -140,71 +143,117 @@ const ctx = canvas.getContext("2d");
 
 let dibujando = false;
 
-/* =============== DIBUJAR FIRMA =============== */
-canvas.addEventListener("mousedown", ()=> dibujando = true);
-canvas.addEventListener("mouseup", ()=> { dibujando = false; ctx.beginPath(); });
-canvas.addEventListener("mousemove", (e)=>{
-    if(!dibujando) return;
-    const rect = canvas.getBoundingClientRect();
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "#000";
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-});
+/* 🔹 Ajuste para alta resolución (móviles) */
+function ajustarCanvas(){
+  const ratio = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width * ratio;
+  canvas.height = rect.height * ratio;
+  ctx.scale(ratio, ratio);
+}
+ajustarCanvas();
+
+/* 🔹 Obtener posición */
+function getPos(e){
+  const rect = canvas.getBoundingClientRect();
+
+  if(e.touches){
+    return {
+      x: e.touches[0].clientX - rect.left,
+      y: e.touches[0].clientY - rect.top
+    };
+  }else{
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+}
+
+/* ===== INICIAR DIBUJO ===== */
+function iniciar(e){
+  e.preventDefault();
+  dibujando = true;
+  const pos = getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+}
+
+/* ===== DIBUJAR ===== */
+function dibujar(e){
+  if(!dibujando) return;
+  e.preventDefault();
+  const pos = getPos(e);
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#000";
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+}
+
+/* ===== FINALIZAR ===== */
+function finalizar(){
+  dibujando = false;
+  ctx.beginPath();
+}
+
+/* 🖱️ Mouse */
+canvas.addEventListener("mousedown", iniciar);
+canvas.addEventListener("mousemove", dibujar);
+canvas.addEventListener("mouseup", finalizar);
+canvas.addEventListener("mouseleave", finalizar);
+
+/* 📱 Touch */
+canvas.addEventListener("touchstart", iniciar, { passive:false });
+canvas.addEventListener("touchmove", dibujar, { passive:false });
+canvas.addEventListener("touchend", finalizar);
 
 /* LIMPIAR */
 window.limpiar = ()=>{
-    ctx.clearRect(0,0,350,200);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 };
 
-/* =============== GUARDAR AUDITORÍA COMPLETA =============== */
+/* ===== GUARDAR AUDITORÍA ===== */
 window.guardar = async()=>{
 
-    const sucursal      = localStorage.getItem("aud_sucursal");
-    const nombre        = localStorage.getItem("aud_nombre");
-    const fecha         = localStorage.getItem("aud_fecha");
-    const usuario       = localStorage.getItem("aud_usuario");
+  const sucursal     = localStorage.getItem("aud_sucursal");
+  const nombre       = localStorage.getItem("aud_nombre");
+  const fecha        = localStorage.getItem("aud_fecha");
+  const usuario      = localStorage.getItem("aud_usuario");
 
-    const inventario    = JSON.parse(localStorage.getItem("aud_captura"));
-    const caducidades   = JSON.parse(localStorage.getItem("aud_caducidades"));
-    const devoluciones  = JSON.parse(localStorage.getItem("aud_devoluciones"));
-    const incidencias   = localStorage.getItem("aud_incidencias");
-    const sugerencias   = localStorage.getItem("aud_sugerencias");
+  const inventario   = JSON.parse(localStorage.getItem("aud_captura"));
+  const caducidades  = JSON.parse(localStorage.getItem("aud_caducidades"));
+  const devoluciones = JSON.parse(localStorage.getItem("aud_devoluciones"));
+  const incidencias  = localStorage.getItem("aud_incidencias");
+  const sugerencias  = localStorage.getItem("aud_sugerencias");
 
-    const firma = canvas.toDataURL();
+  const firma = canvas.toDataURL("image/png");
 
-    const data = {
-        sucursal,
-        nombre,
-        usuario,
-        fecha,
-        creadoEn: serverTimestamp(),
-        firma,
-        inventario,
-        caducidades,
-        devoluciones,
-        incidencias,
-        sugerencias
-    };
+  await addDoc(
+    collection(db, `auditorias/${sucursal}/auditorias_registros`),
+    {
+      sucursal,
+      nombre,
+      usuario,
+      fecha,
+      creadoEn: serverTimestamp(),
+      firma,
+      inventario,
+      caducidades,
+      devoluciones,
+      incidencias,
+      sugerencias
+    }
+  );
 
-    await addDoc(
-        collection(db, `auditorias/${sucursal}/auditorias_registros`),
-        data
-    );
+  localStorage.removeItem("aud_captura");
+  localStorage.removeItem("aud_caducidades");
+  localStorage.removeItem("aud_devoluciones");
+  localStorage.removeItem("aud_incidencias");
+  localStorage.removeItem("aud_sugerencias");
 
-    // LIMPIAR
-    localStorage.removeItem("aud_captura");
-    localStorage.removeItem("aud_caducidades");
-    localStorage.removeItem("aud_devoluciones");
-    localStorage.removeItem("aud_incidencias");
-    localStorage.removeItem("aud_sugerencias");
-
-    window.location = "gracias.html";
+  window.location = "gracias.html";
 };
 </script>
-
 </body>
 </html>

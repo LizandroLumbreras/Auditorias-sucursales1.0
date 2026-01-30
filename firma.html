@@ -71,13 +71,18 @@ h2{
 
 /* CANVAS */
 canvas{
-   border:2px solid var(--azul1);
-   border-radius:12px;
-   background:white;
-   display:block;
-   margin:15px auto;
-   box-shadow:0 4px 12px rgba(0,0,0,.25);
+  width:100%;
+  max-width:420px;
+  height:200px;
+  border:2px solid var(--azul1);
+  border-radius:12px;
+  background:white;
+  display:block;
+  margin:15px auto;
+  box-shadow:0 4px 12px rgba(0,0,0,.25);
+  touch-action:none;
 }
+
 
 /* BOTONES */
 button{
@@ -126,7 +131,7 @@ button{
 
     <h2>Firma del Encargado</h2>
 
-    <canvas id="canvas" width="350" height="200"></canvas>
+    <canvas id="canvas"></canvas>
 
     <button class="btn2" onclick="limpiar()">Limpiar firma</button>
     <button class="btn1" onclick="guardar()">Guardar Auditoría</button>
@@ -147,9 +152,11 @@ let dibujando = false;
 function ajustarCanvas(){
   const ratio = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
+
   canvas.width  = rect.width * ratio;
   canvas.height = rect.height * ratio;
-  ctx.scale(ratio, ratio);
+
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 }
 ajustarCanvas();
 
@@ -184,13 +191,14 @@ function dibujar(e){
   if(!dibujando) return;
   e.preventDefault();
   const pos = getPos(e);
-  ctx.lineWidth = 2;
+
+  ctx.lineWidth = window.innerWidth < 600 ? 2.5 : 2;
   ctx.lineCap = "round";
   ctx.strokeStyle = "#000";
+
   ctx.lineTo(pos.x, pos.y);
   ctx.stroke();
 }
-
 /* ===== FINALIZAR ===== */
 function finalizar(){
   dibujando = false;

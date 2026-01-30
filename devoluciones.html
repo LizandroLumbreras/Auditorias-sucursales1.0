@@ -190,19 +190,29 @@ button{
 
 <script>
 function si(){
-    window.location = "devoluciones_captura.html";
+    // Guardar que SI hubo mermas
+    localStorage.setItem("aud_mermas", "SI");
+
+    // Redirigir a la página de mermas
+    window.location.href = "https://lizandrolumbreras.github.io/MERMA-COSTEO/";
 }
 
 function no(){
+    // Guardar que NO hubo mermas
+    localStorage.setItem("aud_mermas", "NO");
+
+    // Mostrar confirmación
     document.getElementById("modal").style.display = "flex";
 }
 
 function redir_si(){
-    window.location = "devoluciones_captura.html";
+    localStorage.setItem("aud_mermas", "SI");
+    window.location.href = "https://lizandrolumbreras.github.io/MERMA-COSTEO/";
 }
 
 function redir_no(){
-    window.location = "incidencias.html";
+    localStorage.setItem("aud_mermas", "NO");
+    window.location.href = "incidencias.html";
 }
 </script>
 

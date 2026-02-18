@@ -8,6 +8,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
+.modalOverlay{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,.55);
+    backdrop-filter:blur(4px);
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+}
+
+.modalOverlay .box{
+    background:white;
+    padding:30px;
+    border-radius:18px;
+    width:90%;
+    max-width:400px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+    animation: fadeUp .4s ease;
+}
 
 :root{
     --azul1:#00416A;
@@ -187,16 +211,16 @@ button{
       <button class="modal-btn no2" onclick="redir_no()">No</button>
   </div>
 </div>
-<div id="modalReciente" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.45); justify-content:center; align-items:center; z-index:20;">
+<div id="modalReciente" class="modalOverlay">
   <div class="box">
       <h3>Captura requerida</h3>
       <p>Captura la devolución más reciente realizada.</p>
 
       <button class="modal-btn si2" onclick="capturarAhora()">Capturar ahora</button>
-      <button class="modal-btn no2" onclick="cancelarReciente()">Cancelar</button>
+      <button class="modal-btn no2" onclick="cerrarModal('modalReciente')">Cancelar</button>
   </div>
 </div>
-<div id="modalPendiente" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.45); justify-content:center; align-items:center; z-index:20;">
+<div id="modalPendiente" class="modalOverlay">
   <div class="box">
       <h3>Confirmación</h3>
       <p>¿Tienes alguna devolución pendiente por capturar?</p>
@@ -239,6 +263,9 @@ function pendienteSi(){
 function pendienteNo(){
     localStorage.setItem("aud_mermas", "NO");
     window.location.href = "incidencias.html";
+}
+    function cerrarModal(id){
+    document.getElementById(id).style.display = "none";
 }
 
 </script>

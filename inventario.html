@@ -267,10 +267,17 @@ async function cargarProductos(){
         // 2️⃣ Obtener códigos más vendidos
         const topCodigos = await obtenerTopMovimientos();
 
-        // 3️⃣ Filtrar productos que coincidan
-aleatorios = activos.filter(p =>
-    topCodigos.includes(String(p.codigoBarra))
-);;
+// Crear lista de códigos fijos
+const codigosFijos = FIJOS_MANUALES.map(f => String(f.codigo));
+
+// 3️⃣ Filtrar productos que coincidan,
+// excluyendo los que ya están en lista fija
+aleatorios = activos.filter(p => {
+    const codigo = String(p.codigoBarra);
+
+    return topCodigos.includes(codigo) &&
+           !codigosFijos.includes(codigo);
+});
 
         localStorage.setItem("aud_aleatorios",JSON.stringify(aleatorios));
         localStorage.setItem("aud_aleatorios_fecha", new Date().toISOString());

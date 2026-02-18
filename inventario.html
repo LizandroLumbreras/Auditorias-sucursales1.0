@@ -149,8 +149,52 @@ const modoFisico2 = localStorage.getItem("aud_modo") === "fisico_2";
 }
 
 import { db } from "https://lizandrolumbreras.github.io/Auditorias-sucursales1.0/firebase.js";
-import { collection, getDocs, doc, getDoc }
+import { 
+    collection, 
+    getDocs, 
+    doc, 
+    getDoc,
+    query,
+    where
+} 
+
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    async function obtenerTopMovimientos(){
+
+  const hace30Dias = new Date();
+hace30Dias.setDate(hace30Dias.getDate() - 30);
+
+const q = query(
+    collection(db,"ventas_rutav2"),
+    where("fecha", ">=", hace30Dias)
+);
+
+const snap = await getDocs(q);
+  const acumulado = {};
+
+  snap.forEach(doc=>{
+    const data = doc.data();
+    const detalles = data.detalle || [];
+
+    detalles.forEach(item=>{
+     const codigo = String(item.codigo);
+      const cantidad = Number(item.cantidad || 0);
+
+      if(!acumulado[codigo]){
+        acumulado[codigo] = 0;
+      }
+
+      acumulado[codigo] += cantidad;
+    });
+  });
+
+  const ordenados = Object.entries(acumulado)
+    .sort((a,b)=> b[1] - a[1])
+    .slice(0,10);
+
+  return ordenados.map(x => x[0]);
+}
+
 
 const lista = document.getElementById("lista");
 
@@ -208,15 +252,25 @@ async function cargarProductos(){
     let aleatorios;
 
     if(!guardado || debeRenovar(fecha,cfg.renovarCadaDias)){
+
+        // 1️⃣ Traer productos activos
         const snap = await getDocs(collection(db,"productos"));
         let activos=[];
 
         snap.forEach(d=>{
             const x=d.data();
-            if(x.activo===true) activos.push({id:d.id,...x});
+            if(x.activo===true){
+                activos.push({id:d.id,...x});
+            }
         });
 
-        aleatorios = activos.sort(()=>0.5 - Math.random()).slice(0,10);
+        // 2️⃣ Obtener códigos más vendidos
+        const topCodigos = await obtenerTopMovimientos();
+
+        // 3️⃣ Filtrar productos que coincidan
+aleatorios = activos.filter(p =>
+    topCodigos.includes(String(p.codigoBarra))
+);;
 
         localStorage.setItem("aud_aleatorios",JSON.stringify(aleatorios));
         localStorage.setItem("aud_aleatorios_fecha", new Date().toISOString());
@@ -238,7 +292,6 @@ async function cargarProductos(){
 
     pintar(finalList);
 }
-
 /* ---------- PINTAR ---------- */
 function pintar(data){
 

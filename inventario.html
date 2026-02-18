@@ -188,11 +188,11 @@ const snap = await getDocs(q);
     });
   });
 
-  const ordenados = Object.entries(acumulado)
-    .sort((a,b)=> b[1] - a[1])
-    .slice(0,10);
+const ordenados = Object.entries(acumulado)
+  .sort((a,b)=> b[1] - a[1]);
 
-  return ordenados.map(x => x[0]);
+return ordenados.map(x => x[0]);
+
 }
 
 
@@ -277,7 +277,13 @@ aleatorios = activos.filter(p => {
 
     return topCodigos.includes(codigo) &&
            !codigosFijos.includes(codigo);
-});
+})
+.sort((a,b) => {
+    return topCodigos.indexOf(String(a.codigoBarra)) -
+           topCodigos.indexOf(String(b.codigoBarra));
+})
+.slice(0,10);   // 🔥 AQUÍ cortas a 10 reales
+
 
         localStorage.setItem("aud_aleatorios",JSON.stringify(aleatorios));
         localStorage.setItem("aud_aleatorios_fecha", new Date().toISOString());

@@ -221,7 +221,7 @@ async function cargarProductos(){
             if(x.activo===true) activos.push({id:d.id,...x});
         });
 
-        aleatorios = activos.sort(()=>0.5 - Math.random()).slice(0,20);
+        aleatorios = activos.sort(()=>0.5 - Math.random()).slice(0,10);
 
         localStorage.setItem("aud_aleatorios",JSON.stringify(aleatorios));
         localStorage.setItem("aud_aleatorios_fecha", new Date().toISOString());

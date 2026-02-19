@@ -339,24 +339,34 @@ cargarProductos();
 
 <script>
 function finalizar(){
+
+    const arr = JSON.parse(localStorage.getItem("aud_productos"));
+
+    if(!arr){
+        alert("Error: no se generaron productos para auditoría.");
+        return;
+    }
+
     if(confirm("¿Seguro de continuar? Los campos vacíos serán 0?")){
-        const arr = JSON.parse(localStorage.getItem("aud_productos"));
+
         const cap = [];
 
         arr.forEach(p=>{
             const val = document.getElementById(`p_${p.id}`)?.value;
+
             cap.push({
-                id:p.id,
-                concepto:p.concepto,
-                codigo:p.codigoBarra,
-                cantidad:Number(val || 0)
+                id: p.id,
+                concepto: p.concepto,
+                codigo: p.codigoBarra,
+                cantidad: Number(val || 0)
             });
         });
 
         localStorage.setItem("aud_captura", JSON.stringify(cap));
-        window.location="caducidades.html";
+        window.location = "caducidades.html";
     }
 }
+
 </script>
 
 </body>

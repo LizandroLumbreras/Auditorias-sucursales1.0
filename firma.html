@@ -221,46 +221,69 @@ window.limpiar = ()=>{
   ctx.clearRect(0,0,canvas.width,canvas.height);
 };
 
+console.log("Sucursal:", localStorage.getItem("aud_sucursal"));
+console.log("Inventario:", localStorage.getItem("aud_captura"));
+    
 /* ===== GUARDAR AUDITORÍA ===== */
 window.guardar = async()=>{
 
-  const sucursal     = localStorage.getItem("aud_sucursal");
-  const nombre       = localStorage.getItem("aud_nombre");
-  const fecha        = localStorage.getItem("aud_fecha");
-  const usuario      = localStorage.getItem("aud_usuario");
+  try{
 
-  const inventario   = JSON.parse(localStorage.getItem("aud_captura"));
-  const caducidades  = JSON.parse(localStorage.getItem("aud_caducidades"));
-  const devoluciones = JSON.parse(localStorage.getItem("aud_devoluciones"));
-  const incidencias  = localStorage.getItem("aud_incidencias");
-  const sugerencias  = localStorage.getItem("aud_sugerencias");
+    const sucursal     = localStorage.getItem("aud_sucursal");
+    const nombre       = localStorage.getItem("aud_nombre");
+    const fecha        = localStorage.getItem("aud_fecha");
+    const usuario      = localStorage.getItem("aud_usuario");
 
-  const firma = canvas.toDataURL("image/png");
+    const inventario   = JSON.parse(localStorage.getItem("aud_captura"));
+    const caducidades  = JSON.parse(localStorage.getItem("aud_caducidades"));
+    const devoluciones = JSON.parse(localStorage.getItem("aud_devoluciones"));
+    const incidencias  = localStorage.getItem("aud_incidencias");
+    const sugerencias  = localStorage.getItem("aud_sugerencias");
 
-  await addDoc(
-    collection(db, `auditorias/${sucursal}/auditorias_registros`),
-    {
-      sucursal,
-      nombre,
-      usuario,
-      fecha,
-      creadoEn: serverTimestamp(),
-      firma,
-      inventario,
-      caducidades,
-      devoluciones,
-      incidencias,
-      sugerencias
+    if(!sucursal){
+      alert("No hay sucursal definida.");
+      return;
     }
-  );
 
-  localStorage.removeItem("aud_captura");
-  localStorage.removeItem("aud_caducidades");
-  localStorage.removeItem("aud_devoluciones");
-  localStorage.removeItem("aud_incidencias");
-  localStorage.removeItem("aud_sugerencias");
+    if(!inventario){
+      alert("No hay captura de inventario.");
+      return;
+    }
 
-  window.location = "gracias.html";
+    const firma = canvas.toDataURL("image/png");
+
+    await addDoc(
+      collection(db, `auditorias/${sucursal}/auditorias_registros`),
+      {
+        sucursal,
+        nombre,
+        usuario,
+        fecha,
+        creadoEn: serverTimestamp(),
+        firma,
+        inventario,
+        caducidades: caducidades || [],
+        devoluciones: devoluciones || [],
+        incidencias: incidencias || "",
+        sugerencias: sugerencias || ""
+      }
+    );
+
+    alert("Auditoría guardada correctamente.");
+
+    localStorage.removeItem("aud_captura");
+    localStorage.removeItem("aud_caducidades");
+    localStorage.removeItem("aud_devoluciones");
+    localStorage.removeItem("aud_incidencias");
+    localStorage.removeItem("aud_sugerencias");
+
+    window.location = "gracias.html";
+
+  }catch(error){
+    console.error("ERROR AL GUARDAR:", error);
+    alert("Error al guardar auditoría. Revisa consola.");
+  }
+
 };
 </script>
 </body>

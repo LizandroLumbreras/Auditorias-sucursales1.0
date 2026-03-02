@@ -277,7 +277,27 @@ if (!cad) {
             : "Sin devoluciones";
 
     /* INCIDENCIAS */
-    document.getElementById("incList").innerHTML = x.incidencias || "Sin incidencias";
+if (!x.incidencias) {
+
+    document.getElementById("incList").innerHTML = "Sin incidencias";
+
+} else if (typeof x.incidencias === "object") {
+
+    document.getElementById("incList").innerHTML = `
+        <p><b>Incidencias generales:</b><br>
+        ${x.incidencias.general || "Sin incidencias"}</p>
+
+        <hr style="margin:15px 0; border-color:rgba(255,255,255,0.3);">
+
+        <p><b>Equipo de oficina:</b><br>
+        ${x.incidencias.equipo || "Sin reporte"}</p>
+    `;
+
+} else {
+
+    /* Compatibilidad con auditorías viejas */
+    document.getElementById("incList").innerHTML = x.incidencias;
+}
 
     /* SUGERENCIAS */
     document.getElementById("sugList").innerHTML = x.sugerencias || "Sin sugerencias"
@@ -632,8 +652,20 @@ if (x.caducidades) {
             tablaDevoluciones(x.devoluciones),
 
             /* INCIDENCIAS */
-            {text:"Incidencias", style:"titulo"},
-            {text: x.incidencias || "Sin incidencias", margin:[0,10]},
+{ text:"Incidencias", style:"titulo"},
+
+...(typeof x.incidencias === "object"
+    ? [
+        { text: "Incidencias generales:", bold:true },
+        { text: x.incidencias.general || "Sin incidencias", margin:[0,5] },
+
+        { text: "\nEquipo de oficina:", bold:true },
+        { text: x.incidencias.equipo || "Sin reporte", margin:[0,5] }
+      ]
+    : [
+        { text: x.incidencias || "Sin incidencias", margin:[0,10] }
+      ]
+),
 
             /* SUGERENCIAS */
             {text:"Sugerencias", style:"titulo"},

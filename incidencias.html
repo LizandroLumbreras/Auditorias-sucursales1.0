@@ -128,9 +128,23 @@ button{
         Escribe cualquier incidencia que haya ocurrido hoy (faltas, retardos, problemas, desempeño, etc.).
     </p>
 
-    <textarea id="incidencias" placeholder="Escribe aquí..."></textarea>
+<textarea id="incidencias" placeholder="Escribe aquí..."></textarea>
 
-    <button id="btnContinuar" class="disabled">Continuar</button>
+<!-- NUEVA PREGUNTA -->
+<div style="margin-top:25px;">
+    <p style="font-size:17px;">
+        ¿Necesitas algún equipo de oficina (teclado, mouse, pantalla, etc)?
+        Menciona qué falla presenta:
+    </p>
+
+    <textarea id="equipoOficina" 
+        placeholder="Ejemplo:
+Mouse no funciona
+Pantalla parpadea
+Teclado con teclas dañadas"></textarea>
+</div>
+
+<button id="btnContinuar" class="disabled">Continuar</button>
 </div>
 
 <script>
@@ -158,7 +172,12 @@ btn.addEventListener("click", ()=>{
         return;
     }
 
-    localStorage.setItem("aud_incidencias", txt);
+    const equipo = document.getElementById("equipoOficina").value.trim();
+
+localStorage.setItem("aud_incidencias", JSON.stringify({
+    general: txt,
+    equipo: equipo
+}));
 
     window.location = "sugerencias.html";
 });

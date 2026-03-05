@@ -149,7 +149,7 @@ Teclado con teclas dañadas"></textarea>
         Adjuntar evidencia fotográfica (opcional):
     </p>
 
-    <input type="file" id="fotoIncidencia" accept="image/*" capture="environment">
+<input type="file" id="fotoIncidencia" accept="image/*" capture="environment" multiple>
 </div>
 
 <button id="btnContinuar" class="disabled">Continuar</button>
@@ -196,20 +196,28 @@ btn.addEventListener("click", async ()=>{
 
     const equipo = document.getElementById("equipoOficina").value.trim();
 
-let fotoBase64 = null;
-
 const inputFoto = document.getElementById("fotoIncidencia");
 
+if(inputFoto && inputFoto.files.length > 4){
+    alert("Máximo 4 fotos.");
+    return;
+}
+
+let fotos = [];
+
 if(inputFoto && inputFoto.files.length > 0){
-    fotoBase64 = await convertirBase64(inputFoto.files[0]);
+
+    for(let file of inputFoto.files){
+        const base64 = await convertirBase64(file);
+        fotos.push(base64);
+    }
 }
 
 localStorage.setItem("aud_incidencias", JSON.stringify({
     general: txt,
     equipo: equipo,
-    foto: fotoBase64
+    fotos: fotos
 }));
-
     window.location = "sugerencias.html";
 });
 </script>

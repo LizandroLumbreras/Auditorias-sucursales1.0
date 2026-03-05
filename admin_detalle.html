@@ -373,8 +373,7 @@ function parsearVentasReporte(texto){
 
         // Cantidad vendida SIEMPRE está después del nombre,
         // y es el PRIMER número decimal grande
-        const cantidad = Number(partes[4]);
-
+       const cantidad = Number(partes.find(p => !isNaN(p) && p.includes(".")));
         if (!codigo || isNaN(cantidad)) return;
 
         // SUMAR ventas (se restan después)
@@ -397,7 +396,7 @@ function parsearTransferenciasReporte(texto){
 
         // Según el reporte real
         const codigo = partes[1];
-        const cantidad = Number(partes.find(p => p.includes(".") && !isNaN(p)));
+        const cantidad = Number(partes.reverse().find(p => !isNaN(p)));
 
         if (!codigo || isNaN(cantidad)) return;
 
@@ -425,6 +424,15 @@ document.getElementById("btnCalcular").onclick = async ()=>{
             leerTXT(fVentas),
             leerTXT(fTrans)
         ]);
+        if(txtV.trim().length < 10){
+    msg.textContent = "Archivo de ventas vacío o inválido";
+    return;
+}
+
+if(txtT.trim().length < 10){
+    msg.textContent = "Archivo de transferencias vacío o inválido";
+    return;
+}
 
         const ventasMap = parsearVentasReporte(txtV);
         const transMap = parsearTransferenciasReporte(txtT);
@@ -438,6 +446,10 @@ document.getElementById("btnCalcular").onclick = async ()=>{
         }
 
         const data = snap.data();
+        if(!Array.isArray(data.inventario) || data.inventario.length === 0){
+    msg.textContent = "No existe inventario físico en la auditoría.";
+    return;
+}
         const invFisico = data.inventario || [];
 
         // Calcular teórico por código
@@ -446,7 +458,7 @@ const inventario_teorico = invFisico.map(p=>{
     const t = transMap[p.codigo] || 0;
 
     const fisico1 = Number(p.cantidad ?? p.fisico_1 ?? 0);
-    const teorico = fisico1 - v + t;
+    const teorico = Math.max(0, fisico1 - v + t);
 
     return {
         codigo: p.codigo,
@@ -503,12 +515,12 @@ document.getElementById("btnPDF").onclick = async ()=>{
     }
 
     // IMPORTANTE → CON ./ PARA QUE CARGUE BIEN EN GITHUB PAGES
-  const logoBase64 = await getBase64Image("./logo_proveedora.png");
+  const logoBase64 = await getBase64Image("./logo_proveedora.webp");
 
     // Firma ya viene en base64, solo limpiamos:
     const firmaBase64 = (x.firma || "").trim();
 
-    if (!firmaBase64.startsWith("data:image")) {
+    if (!firmaBase64 || !firmaBase64.includes("data:image")) {
         alert("La firma no es una imagen válida.");
         return;
     }
@@ -590,7 +602,6 @@ if (x.caducidades) {
 } else {
     cadArray.push({text:"Sin información de caducidades."});
 }
-const inventarioSeguro = Array.isArray(x.inventario) ? x.inventario : [];
 
     /* ===========================
         DOCUMENTO PDF
@@ -682,7 +693,6 @@ const inventarioSeguro = Array.isArray(x.inventario) ? x.inventario : [];
     width: 220,
     margin:[0,10]
 },   // ← ESTA COMA ES OBLIGATORIA
-
 ...(
     x.incidencias &&
     x.incidencias.fotos &&
@@ -721,7 +731,8 @@ const inventarioSeguro = Array.isArray(x.inventario) ? x.inventario : [];
         ]
         : []
 ),
-        styles:{
+],   // ← ESTE CIERRE FALTABA
+styles:{
             titulo:{
                 fontSize:16,
                 bold:true,
@@ -730,7 +741,13 @@ const inventarioSeguro = Array.isArray(x.inventario) ? x.inventario : [];
         }
     };
 
+    try{
     pdfMake.createPdf(docDefinition).download(`Auditoria_${sucursal}_${x.fecha}.pdf`);
+}catch(e){
+    console.error(e);
+    alert("Error generando el PDF");
+}
+
 };
 </script>
 

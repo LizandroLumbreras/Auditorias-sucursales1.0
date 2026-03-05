@@ -590,7 +590,7 @@ if (x.caducidades) {
 } else {
     cadArray.push({text:"Sin información de caducidades."});
 }
-
+const inventarioSeguro = Array.isArray(x.inventario) ? x.inventario : [];
 
     /* ===========================
         DOCUMENTO PDF
@@ -636,11 +636,15 @@ if (x.caducidades) {
 
             /* INVENTARIO FIJO */
             {text:"Inventario Fijo", style:"titulo"},
-            tablaInventario( x.inventario.filter(p=>p.id.startsWith("fijo_")) ),
+            tablaInventario(
+    (x.inventario || []).filter(p => p.id && p.id.startsWith("fijo_"))
+),
 
             /* INVENTARIO ALEATORIO */
             {text:"Inventario Aleatorio", style:"titulo"},
-            tablaInventario( x.inventario.filter(p=>!p.id.startsWith("fijo_")) ),
+           tablaInventario(
+    (x.inventario || []).filter(p => !p.id || !p.id.startsWith("fijo_"))
+),
 
             /* CADUCIDADES + PREGUNTAS */
             {text:"Caducidades y Preguntas", style:"titulo"},

@@ -143,6 +143,14 @@ Mouse no funciona
 Pantalla parpadea
 Teclado con teclas dañadas"></textarea>
 </div>
+<!-- FOTO SOLO MÓVIL -->
+<div id="bloqueFoto" style="margin-top:20px; display:none;">
+    <p style="font-size:17px;">
+        Adjuntar evidencia fotográfica (opcional):
+    </p>
+
+    <input type="file" id="fotoIncidencia" accept="image/*" capture="environment">
+</div>
 
 <button id="btnContinuar" class="disabled">Continuar</button>
 </div>
@@ -150,7 +158,21 @@ Teclado con teclas dañadas"></textarea>
 <script>
 const textarea = document.getElementById("incidencias");
 const btn = document.getElementById("btnContinuar");
+// Mostrar botón foto solo en móvil
+function esMovil(){
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
 
+if(esMovil()){
+    document.getElementById("bloqueFoto").style.display = "block";
+}
+async function convertirBase64(file){
+    return new Promise((resolve)=>{
+        const reader = new FileReader();
+        reader.onloadend = ()=> resolve(reader.result);
+        reader.readAsDataURL(file);
+    });
+}
 /* ACTIVAR BOTÓN AUTOMÁTICAMENTE */
 textarea.addEventListener("input", ()=>{
     const txt = textarea.value.trim();
@@ -164,7 +186,7 @@ textarea.addEventListener("input", ()=>{
     }
 });
 
-btn.addEventListener("click", ()=>{
+btn.addEventListener("click", async ()=>{
     const txt = textarea.value.trim();
 
     if(txt.length < 5){
@@ -174,9 +196,18 @@ btn.addEventListener("click", ()=>{
 
     const equipo = document.getElementById("equipoOficina").value.trim();
 
+let fotoBase64 = null;
+
+const inputFoto = document.getElementById("fotoIncidencia");
+
+if(inputFoto && inputFoto.files.length > 0){
+    fotoBase64 = await convertirBase64(inputFoto.files[0]);
+}
+
 localStorage.setItem("aud_incidencias", JSON.stringify({
     general: txt,
-    equipo: equipo
+    equipo: equipo,
+    foto: fotoBase64
 }));
 
     window.location = "sugerencias.html";

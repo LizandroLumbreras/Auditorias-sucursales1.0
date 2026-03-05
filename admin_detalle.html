@@ -652,6 +652,7 @@ if (x.caducidades) {
             tablaDevoluciones(x.devoluciones),
 
             /* INCIDENCIAS */
+/* INCIDENCIAS */
 { text:"Incidencias", style:"titulo"},
 
 ...(typeof x.incidencias === "object"
@@ -660,7 +661,19 @@ if (x.caducidades) {
         { text: x.incidencias.general || "Sin incidencias", margin:[0,5] },
 
         { text: "\nEquipo de oficina:", bold:true },
-        { text: x.incidencias.equipo || "Sin reporte", margin:[0,5] }
+        { text: x.incidencias.equipo || "Sin reporte", margin:[0,5] },
+
+        ...(x.incidencias.foto
+            ? [
+                { text: "\nEvidencia fotográfica:", bold:true },
+                {
+                    image: x.incidencias.foto,
+                    width: 250,
+                    margin:[0,10]
+                }
+              ]
+            : []
+        )
       ]
     : [
         { text: x.incidencias || "Sin incidencias", margin:[0,10] }

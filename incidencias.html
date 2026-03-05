@@ -149,7 +149,7 @@ Teclado con teclas dañadas"></textarea>
         Adjuntar evidencia fotográfica (opcional):
     </p>
 
-<input type="file" id="fotoIncidencia" accept="image/*" capture="environment" multiple>
+<input type="file" id="fotoIncidencia" accept="image/*" multiple>
 
 <div id="previewFotos" style="
     display:grid;
@@ -165,13 +165,7 @@ Teclado con teclas dañadas"></textarea>
 const textarea = document.getElementById("incidencias");
 const btn = document.getElementById("btnContinuar");
 // Mostrar botón foto solo en móvil
-function esMovil(){
-    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-if(esMovil()){
-    document.getElementById("bloqueFoto").style.display = "block";
-}
+document.getElementById("bloqueFoto").style.display = "block";
 async function convertirBase64(file){
     return new Promise((resolve)=>{
 

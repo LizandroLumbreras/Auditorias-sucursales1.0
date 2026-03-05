@@ -661,38 +661,59 @@ if (x.caducidades) {
         { text: x.incidencias.general || "Sin incidencias", margin:[0,5] },
 
         { text: "\nEquipo de oficina:", bold:true },
-        { text: x.incidencias.equipo || "Sin reporte", margin:[0,5] },
-
-        ...(x.incidencias.foto
-            ? [
-                { text: "\nEvidencia fotográfica:", bold:true },
-                {
-                    image: x.incidencias.foto,
-                    width: 250,
-                    margin:[0,10]
-                }
-              ]
-            : []
-        )
+        { text: x.incidencias.equipo || "Sin reporte", margin:[0,5] }
       ]
     : [
         { text: x.incidencias || "Sin incidencias", margin:[0,10] }
       ]
 ),
-
             /* SUGERENCIAS */
             {text:"Sugerencias", style:"titulo"},
             {text: x.sugerencias || "Sin sugerencias", margin:[0,10]},
 
-            /* FIRMA */
-            {text:"Firma del encargado", style:"titulo", margin:[0,20,0,10]},
-            {
-                image: firmaBase64,
-                width: 220,
-                margin:[0,10]
-            }
-        ],
+          /* FIRMA */
+{text:"Firma del encargado", style:"titulo", margin:[0,20,0,10]},
+{
+    image: firmaBase64,
+    width: 220,
+    margin:[0,10]
+},   // ← ESTA COMA ES OBLIGATORIA
 
+...(x.incidencias?.fotos?.length
+    ? [
+        { text: "", pageBreak: "after" },
+
+        { text: "Evidencia Fotográfica", style: "titulo", margin:[0,0,0,20] },
+
+        {
+            table: {
+                widths: ["50%", "50%"],
+                body: [
+                    [
+                        x.incidencias.fotos[0]
+                            ? { image: x.incidencias.fotos[0], width: 220, alignment:"center" }
+                            : { text:"" },
+
+                        x.incidencias.fotos[1]
+                            ? { image: x.incidencias.fotos[1], width: 220, alignment:"center" }
+                            : { text:"" }
+                    ],
+                    [
+                        x.incidencias.fotos[2]
+                            ? { image: x.incidencias.fotos[2], width: 220, alignment:"center" }
+                            : { text:"" },
+
+                        x.incidencias.fotos[3]
+                            ? { image: x.incidencias.fotos[3], width: 220, alignment:"center" }
+                            : { text:"" }
+                    ]
+                ]
+            },
+            layout: "noBorders"
+        }
+    ]
+    : []
+),
         styles:{
             titulo:{
                 fontSize:16,

@@ -143,20 +143,6 @@ Mouse no funciona
 Pantalla parpadea
 Teclado con teclas dañadas"></textarea>
 </div>
-<!-- FOTO SOLO MÓVIL -->
-<div id="bloqueFoto" style="margin-top:20px; display:none;">
-    <p style="font-size:17px;">
-        Adjuntar evidencia fotográfica (opcional):
-    </p>
-
-<input type="file" id="fotoIncidencia" accept="image/*" multiple>
-
-<div id="previewFotos" style="
-    display:grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap:12px;
-    margin-top:15px;
-"></div>
 
 <button id="btnContinuar" class="disabled">Continuar</button>
 </div>
@@ -164,114 +150,7 @@ Teclado con teclas dañadas"></textarea>
 <script>
 const textarea = document.getElementById("incidencias");
 const btn = document.getElementById("btnContinuar");
-// Mostrar botón foto solo en móvil
-document.getElementById("bloqueFoto").style.display = "block";
-async function convertirBase64(file){
-    return new Promise((resolve)=>{
 
-        const img = new Image();
-        const reader = new FileReader();
-
-        reader.onload = e=>{
-            img.src = e.target.result;
-        };
-
-        img.onload = ()=>{
-
-            const canvas = document.createElement("canvas");
-
-            const MAX_WIDTH = 800;   // reduce tamaño
-            const scale = MAX_WIDTH / img.width;
-
-            canvas.width = MAX_WIDTH;
-            canvas.height = img.height * scale;
-
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            // compresión fuerte (0.6 = 60% calidad)
-            resolve(canvas.toDataURL("image/jpeg", 0.6));
-        };
-
-        reader.readAsDataURL(file);
-    });
-}
-const inputFotoPreview = document.getElementById("fotoIncidencia");
-const preview = document.getElementById("previewFotos");
-
-let archivosSeleccionados = [];
-
-if(inputFotoPreview){
-
-    inputFotoPreview.addEventListener("change", ()=>{
-
-        const nuevosArchivos = Array.from(inputFotoPreview.files);
-
-        if(archivosSeleccionados.length + nuevosArchivos.length > 4){
-            alert("Máximo 4 fotos.");
-            inputFotoPreview.value = "";
-            return;
-        }
-
-        nuevosArchivos.forEach(file=>{
-            archivosSeleccionados.push(file);
-        });
-
-        inputFotoPreview.value = ""; // limpiar input
-        renderPreview();
-    });
-}
-
-function renderPreview(){
-
-    preview.innerHTML = "";
-
-    archivosSeleccionados.forEach((file, index)=>{
-
-        const reader = new FileReader();
-
-        reader.onload = e=>{
-
-            const container = document.createElement("div");
-            container.style.position = "relative";
-
-            const img = document.createElement("img");
-            img.src = e.target.result;
-            img.style.width = "100%";
-            img.style.height = "130px";
-            img.style.objectFit = "cover";
-            img.style.borderRadius = "12px";
-            img.style.boxShadow = "0 4px 10px rgba(0,0,0,.3)";
-
-            const btnEliminar = document.createElement("div");
-            btnEliminar.innerHTML = "✕";
-            btnEliminar.style.position = "absolute";
-            btnEliminar.style.top = "6px";
-            btnEliminar.style.right = "6px";
-            btnEliminar.style.background = "rgba(0,0,0,.6)";
-            btnEliminar.style.color = "white";
-            btnEliminar.style.width = "24px";
-            btnEliminar.style.height = "24px";
-            btnEliminar.style.display = "flex";
-            btnEliminar.style.alignItems = "center";
-            btnEliminar.style.justifyContent = "center";
-            btnEliminar.style.borderRadius = "50%";
-            btnEliminar.style.cursor = "pointer";
-            btnEliminar.style.fontSize = "14px";
-
-            btnEliminar.onclick = ()=>{
-                archivosSeleccionados.splice(index,1);
-                renderPreview();
-            };
-
-            container.appendChild(img);
-            container.appendChild(btnEliminar);
-            preview.appendChild(container);
-        };
-
-        reader.readAsDataURL(file);
-    });
-}
 /* ACTIVAR BOTÓN AUTOMÁTICAMENTE */
 textarea.addEventListener("input", ()=>{
     const txt = textarea.value.trim();
@@ -285,7 +164,7 @@ textarea.addEventListener("input", ()=>{
     }
 });
 
-btn.addEventListener("click", async ()=>{
+btn.addEventListener("click", ()=>{
     const txt = textarea.value.trim();
 
     if(txt.length < 5){
@@ -295,18 +174,10 @@ btn.addEventListener("click", async ()=>{
 
     const equipo = document.getElementById("equipoOficina").value.trim();
 
-    let fotos = [];
-
-    for(let file of archivosSeleccionados){
-        const base64 = await convertirBase64(file);
-        fotos.push(base64);
-    }
-
-    localStorage.setItem("aud_incidencias", JSON.stringify({
-        general: txt,
-        equipo: equipo,
-        fotos: fotos
-    }));
+localStorage.setItem("aud_incidencias", JSON.stringify({
+    general: txt,
+    equipo: equipo
+}));
 
     window.location = "sugerencias.html";
 });

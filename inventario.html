@@ -154,9 +154,10 @@ import {
     getDocs, 
     doc, 
     getDoc,
+    updateDoc, // 👈 ESTE FALTA
     query,
     where
-} 
+}
 
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     async function obtenerTopMovimientos(){
@@ -244,53 +245,56 @@ function debeRenovar(fecha,dias){
 /* ---------- FUNCIÓN PRINCIPAL ---------- */
 async function cargarProductos(){
 
-    const cfg = await obtenerConfig();
+const cfg = await obtenerConfig();
 
-    const guardado = JSON.parse(localStorage.getItem("aud_aleatorios"));
-    const fecha    = localStorage.getItem("aud_aleatorios_fecha");
+const guardado = JSON.parse(localStorage.getItem("aud_aleatorios"));
+const fecha    = localStorage.getItem("aud_aleatorios_fecha");
 
-    let aleatorios;
+let aleatorios;
 
-    if(!guardado || debeRenovar(fecha,cfg.renovarCadaDias)){
+const forzar = cfg.forzarReinicio === true;
 
-        // 1️⃣ Traer productos activos
-        const snap = await getDocs(collection(db,"productos"));
-        let activos=[];
+if(forzar || !guardado || debeRenovar(fecha,cfg.renovarCadaDias)){
 
-        snap.forEach(d=>{
-            const x=d.data();
-            if(x.activo===true){
-                activos.push({id:d.id,...x});
-            }
+    // 🔹 Generas lista
+    const snap = await getDocs(collection(db,"productos"));
+    let activos=[];
+
+    snap.forEach(d=>{
+        const x=d.data();
+        if(x.activo===true){
+            activos.push({id:d.id,...x});
+        }
+    });
+
+    const topCodigos = await obtenerTopMovimientos();
+
+    const codigosFijos = FIJOS_MANUALES.map(f => String(f.codigo));
+
+    aleatorios = activos.filter(p => {
+        const codigo = String(p.codigoBarra);
+        return topCodigos.includes(codigo) &&
+               !codigosFijos.includes(codigo);
+    })
+    .sort((a,b) => {
+        return topCodigos.indexOf(String(a.codigoBarra)) -
+               topCodigos.indexOf(String(b.codigoBarra));
+    })
+    .slice(0,10);
+
+    localStorage.setItem("aud_aleatorios",JSON.stringify(aleatorios));
+    localStorage.setItem("aud_aleatorios_fecha", new Date().toISOString());
+
+    // 🔹 AHORA sí apagas bandera
+    if(forzar){
+        await updateDoc(doc(db, "config", "auditorias"), {
+            forzarReinicio: false
         });
-
-        // 2️⃣ Obtener códigos más vendidos
-        const topCodigos = await obtenerTopMovimientos();
-
-// Crear lista de códigos fijos
-const codigosFijos = FIJOS_MANUALES.map(f => String(f.codigo));
-
-// 3️⃣ Filtrar productos que coincidan,
-// excluyendo los que ya están en lista fija
-aleatorios = activos.filter(p => {
-    const codigo = String(p.codigoBarra);
-
-    return topCodigos.includes(codigo) &&
-           !codigosFijos.includes(codigo);
-})
-.sort((a,b) => {
-    return topCodigos.indexOf(String(a.codigoBarra)) -
-           topCodigos.indexOf(String(b.codigoBarra));
-})
-.slice(0,10);   // 🔥 AQUÍ cortas a 10 reales
-
-
-        localStorage.setItem("aud_aleatorios",JSON.stringify(aleatorios));
-        localStorage.setItem("aud_aleatorios_fecha", new Date().toISOString());
-
-    }else{
-        aleatorios = guardado;
     }
+
+}else{
+    aleatorios = guardado;
+}
 
     const finalList = [
         ...FIJOS_MANUALES.map((p,i)=>({
